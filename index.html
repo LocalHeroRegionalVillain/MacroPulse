@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MacroPulse" />
+  <title>MacroPulse</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: 90px;
+    }
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+    .glass {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-30 glass border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+      <h1 class="text-lg font-bold tracking-tight text-white">MacroPulse <span class="text-xs font-normal text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-1.5 py-0.5 rounded">v5</span></h1>
+    </div>
+    <button onclick="copySheetRows()" class="text-xs bg-slate-800 hover:bg-slate-700 active:scale-95 text-emerald-400 border border-slate-700 font-medium px-3 py-1.5 rounded-lg transition">
+      📋 Copy Today (A–K)
+    </button>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-md mx-auto p-4 space-y-5">
+
+    <!-- TAB 1: LOG & DASHBOARD -->
+    <section id="tab-log" class="space-y-4">
+      <!-- Daily Totals Card (4:00 AM Rollover) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+        <div class="flex justify-between items-center mb-3">
+          <div>
+            <span class="text-xs uppercase tracking-wider text-emerald-400 font-semibold block" id="current-date-label">Today's Macros</span>
+            <span class="text-[10px] text-slate-500">Resets at 4:00 AM</span>
+          </div>
+          <span class="text-xs text-slate-400"><span id="tot-items">0</span> items today</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-800/70 rounded-xl p-2.5 border border-slate-700/60">
+            <div class="text-xl font-bold text-white" id="tot-cal">0</div>
+            <div class="text-[11px] text-slate-400">Calories</div>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-2.5 border border-slate-700/60">
+            <div class="text-xl font-bold text-emerald-400"><span id="tot-pro">0</span>g</div>
+            <div class="text-[11px] text-slate-400">Protein</div>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-2.5 border border-slate-700/60">
+            <div class="text-xl font-bold text-sky-400"><span id="tot-carb">0</span>g</div>
+            <div class="text-[11px] text-slate-400">Carbs</div>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-2.5 border border-slate-700/60">
+            <div class="text-lg font-bold text-pink-400"><span id="tot-sug">0</span>g</div>
+            <div class="text-[11px] text-slate-400">Sugar</div>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-2.5 border border-slate-700/60">
+            <div class="text-lg font-bold text-amber-400"><span id="tot-fat">0</span>g</div>
+            <div class="text-[11px] text-slate-400">Fat</div>
+          </div>
+          <div class="bg-slate-800/70 rounded-xl p-2.5 border border-slate-700/60">
+            <div class="text-lg font-bold text-rose-400"><span id="tot-sod">0</span>mg</div>
+            <div class="text-[11px] text-slate-400">Sodium</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Smart Autofill & Label Scanner -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-semibold uppercase tracking-wider text-emerald-400">⚡ AI Smart Logger</label>
+          <label class="cursor-pointer text-xs bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 px-2.5 py-1 rounded-lg hover:bg-indigo-600/30 transition">
+            📷 Scan Label / Meal
+            <input type="file" id="image-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)" />
+          </label>
+        </div>
+
+        <div id="image-preview-wrap" class="hidden relative">
+          <img id="image-preview" class="w-full h-36 object-cover rounded-xl border border-slate-700" />
+          <button onclick="clearImage()" class="absolute top-2 right-2 bg-slate-900/80 text-white text-xs px-2 py-1 rounded-md">✕ Clear</button>
+        </div>
+
+        <div class="flex gap-2">
+          <input type="text" id="ai-prompt" placeholder="e.g., Kind bar max peanut butter..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
+          <button onclick="runAiAnalyze()" id="ai-btn" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold px-4 rounded-xl text-sm transition">
+            Analyze
+          </button>
+        </div>
+        <p id="ai-status" class="text-xs text-slate-400 hidden"></p>
+      </div>
+
+      <!-- Manual / Autofilled Entry Form (Columns A-K) -->
+      <form id="entry-form" onsubmit="saveEntry(event)" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Food Entry Details</h2>
+          <button type="button" onclick="resetForm()" class="text-xs text-slate-400 hover:text-white">Reset</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] text-slate-400">Item Name (Col C)</label>
+            <input type="text" id="f-item" required placeholder="Chicken Wings" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Portion (Col D)</label>
+            <input type="text" id="f-portion" placeholder="1 serving (140g)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="text-[11px] text-slate-400">Calories (E)</label>
+            <input type="number" step="any" id="f-cal" required placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Protein g (F)</label>
+            <input type="number" step="any" id="f-pro" required placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Carbs g (G)</label>
+            <input type="number" step="any" id="f-carb" required placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Sugar g (H)</label>
+            <input type="number" step="any" id="f-sug" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Fat g (I)</label>
+            <input type="number" step="any" id="f-fat" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Sodium mg (J)</label>
+            <input type="number" step="any" id="f-sod" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] text-slate-400">Log Method (Col K)</label>
+          <select id="f-method" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="Manual Entry">Manual Entry</option>
+            <option value="AI Smart Fill">AI Smart Fill</option>
+            <option value="Label Scan">Label Scan</option>
+            <option value="Quick Preset">Quick Preset</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-98 text-slate-950 font-bold py-3 rounded-xl transition shadow-md">
+          + Log to MacroPulse
+        </button>
+      </form>
+    </section>
+
+    <!-- TAB 2: HISTORY & SHEET EXPORT -->
+    <section id="tab-history" class="hidden space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">Logged Entries</h2>
+        <div class="flex gap-3">
+          <button onclick="copyAllSheetRows()" class="text-xs text-emerald-400 hover:underline">Copy All History</button>
+          <button onclick="clearToday()" class="text-xs text-rose-400 hover:underline">Clear All</button>
+        </div>
+      </div>
+      <div id="log-list" class="space-y-2.5"></div>
+    </section>
+
+    <!-- TAB 3: SETTINGS (API Key & Google Sheet Webhook) -->
+    <section id="tab-settings" class="hidden space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-emerald-400">⚙️ App Configuration</h2>
+        
+        <div>
+          <label class="text-xs font-medium text-slate-300 block mb-1">Gemini API Key</label>
+          <input type="password" id="cfg-apikey" placeholder="AIzaSy..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white" />
+          <p class="text-[11px] text-slate-400 mt-1">Stored locally on your iPhone. Uses Gemini 3.8 Flash for instant macro estimation.</p>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-slate-300 block mb-1">Google Apps Script Webhook URL</label>
+          <input type="url" id="cfg-webhook" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white" />
+          <p class="text-[11px] text-slate-400 mt-1">Automatically posts each logged row (Cols A–K) directly to your AI Food Tracker Google Sheet.</p>
+        </div>
+
+        <button onclick="saveSettings()" class="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2.5 rounded-xl transition">
+          Save Settings
+        </button>
+        <p id="cfg-msg" class="text-xs text-center text-emerald-400 hidden">Settings saved!</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 glass border-t border-slate-800 px-6 py-2 flex justify-around items-center">
+    <button onclick="switchTab('log')" id="nav-log" class="flex flex-col items-center py-1 text-emerald-400 font-medium text-xs">
+      <span class="text-lg">➕</span>
+      <span>Log Food</span>
+    </button>
+    <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center py-1 text-slate-400 font-medium text-xs">
+      <span class="text-lg">📊</span>
+      <span>History</span>
+    </button>
+    <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center py-1 text-slate-400 font-medium text-xs">
+      <span class="text-lg">⚙️</span>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <script>
+    let logs = JSON.parse(localStorage.getItem('macropulse_logs') || '[]');
+    let currentImageBase64 = null;
+    let currentImageMime = null;
+
+    function getLogicalDateObj(date = new Date()) {
+      return new Date(date.getTime() - (4 * 60 * 60 * 1000));
+    }
+
+    function getLogicalDateString(date = new Date()) {
+      return getLogicalDateObj(date).toLocaleDateString('en-US');
+    }
+
+    function init() {
+      document.getElementById('cfg-apikey').value = localStorage.getItem('mp_apikey') || '';
+      document.getElementById('cfg-webhook').value = localStorage.getItem('mp_webhook') || '';
+      const logicalNow = getLogicalDateObj();
+      document.getElementById('current-date-label').innerText = logicalNow.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' Macros';
+      renderLogs();
+    }
+
+    function switchTab(tab) {
+      ['log', 'history', 'settings'].forEach(t => {
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+        const nav = document.getElementById('nav-' + t);
+        nav.classList.toggle('text-emerald-400', t === tab);
+        nav.classList.toggle('text-slate-400', t !== tab);
+      });
+    }
+
+    function saveSettings() {
+      localStorage.setItem('mp_apikey', document.getElementById('cfg-apikey').value.trim());
+      localStorage.setItem('mp_webhook', document.getElementById('cfg-webhook').value.trim());
+      const msg = document.getElementById('cfg-msg');
+      msg.classList.remove('hidden');
+      setTimeout(() => msg.classList.add('hidden'), 2500);
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      currentImageMime = file.type;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        document.getElementById('image-preview').src = evt.target.result;
+        document.getElementById('image-preview-wrap').classList.remove('hidden');
+        currentImageBase64 = evt.target.result.split(',')[1];
+        document.getElementById('f-method').value = 'Label Scan';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearImage() {
+      currentImageBase64 = null;
+      currentImageMime = null;
+      document.getElementById('image-input').value = '';
+      document.getElementById('image-preview-wrap').classList.add('hidden');
+    }
+
+    async function callGeminiWithFallback(apiKey, parts) {
+      const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+      let lastError = '';
+      for (const model of models) {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+          return data.candidates[0].content.parts[0].text;
+        }
+        lastError = data.error?.message || `HTTP ${res.status}`;
+      }
+      throw new Error(lastError);
+    }
+
+    async function runAiAnalyze() {
+      const apiKey = localStorage.getItem('mp_apikey');
+      if (!apiKey) {
+        alert('Please add your Gemini API Key in the Settings tab first.');
+        switchTab('settings');
+        return;
+      }
+
+      const promptText = document.getElementById('ai-prompt').value.trim();
+      if (!promptText && !currentImageBase64) {
+        alert('Enter a food description or scan a nutrition label first.');
+        return;
+      }
+
+      const statusEl = document.getElementById('ai-status');
+      const btn = document.getElementById('ai-btn');
+      statusEl.innerText = 'Analyzing nutrition with Gemini 3.8 Flash...';
+      statusEl.classList.remove('hidden');
+      btn.disabled = true;
+
+      const systemPrompt = `Extract nutritional facts for the described food or nutrition label image. Return ONLY valid JSON with these exact keys: {"item": "string", "portion": "string", "calories": number, "protein": number, "carbs": number, "sugar": number, "fat": number, "sodium": number}. Round numbers to nearest whole number.`;
+
+      const parts = [{ text: systemPrompt + "\nFood description: " + (promptText || "See attached image") }];
+      if (currentImageBase64) {
+        parts.push({ inline_data: { mime_type: currentImageMime, data: currentImageBase64 } });
+      }
+
+      try {
+        const rawText = await callGeminiWithFallback(apiKey, parts);
+        const cleanedJson = rawText.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(cleanedJson);
+
+        document.getElementById('f-item').value = parsed.item || '';
+        document.getElementById('f-portion').value = parsed.portion || '1 serving';
+        document.getElementById('f-cal').value = parsed.calories ?? 0;
+        document.getElementById('f-pro').value = parsed.protein ?? 0;
+        document.getElementById('f-carb').value = parsed.carbs ?? 0;
+        document.getElementById('f-sug').value = parsed.sugar ?? 0;
+        document.getElementById('f-fat').value = parsed.fat ?? 0;
+        document.getElementById('f-sod').value = parsed.sodium ?? 0;
+        if (!currentImageBase64) document.getElementById('f-method').value = 'AI Smart Fill';
+
+        statusEl.innerText = '✅ Autofilled! Review and tap + Log.';
+      } catch (err) {
+        statusEl.innerText = '❌ ' + (err.message || 'Error parsing AI response.');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function saveEntry(e) {
+      e.preventDefault();
+      const now = new Date();
+      const entry = {
+        id: Date.now(),
+        date: getLogicalDateString(now),
+        time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+        item: document.getElementById('f-item').value.trim(),
+        portion: document.getElementById('f-portion').value.trim() || '1 serving',
+        cal: Number(document.getElementById('f-cal').value) || 0,
+        pro: Number(document.getElementById('f-pro').value) || 0,
+        carb: Number(document.getElementById('f-carb').value) || 0,
+        sug: Number(document.getElementById('f-sug').value) || 0,
+        fat: Number(document.getElementById('f-fat').value) || 0,
+        sod: Number(document.getElementById('f-sod').value) || 0,
+        method: document.getElementById('f-method').value
+      };
+
+      logs.unshift(entry);
+      localStorage.setItem('macropulse_logs', JSON.stringify(logs));
+      renderLogs();
+      resetForm();
+      clearImage();
+
+      const webhook = localStorage.getItem('mp_webhook');
+      if (webhook) {
+        try {
+          fetch(webhook, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(entry)
+          });
+        } catch (err) {
+          console.error('Webhook sync error:', err);
+        }
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('entry-form').reset();
+      document.getElementById('ai-prompt').value = '';
+      document.getElementById('ai-status').classList.add('hidden');
+    }
+
+    function renderLogs() {
+      const todayLogical = getLogicalDateString();
+      let cal = 0, pro = 0, carb = 0, sug = 0, fat = 0, sod = 0, todayCount = 0;
+      const listEl = document.getElementById('log-list');
+      listEl.innerHTML = '';
+
+      logs.forEach(l => {
+        const isToday = (l.date === todayLogical);
+        if (isToday) {
+          cal += l.cal; pro += l.pro; carb += l.carb; sug += l.sug; fat += l.fat; sod += l.sod;
+          todayCount++;
+        }
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900 border ' + (isToday ? 'border-slate-800' : 'border-slate-800/40 opacity-75') + ' rounded-xl p-3 flex justify-between items-center';
+        card.innerHTML = `
+          <div>
+            <div class="font-semibold text-sm text-white">${l.item} <span class="text-xs font-normal text-slate-400">(${l.portion})</span></div>
+            <div class="text-xs text-slate-400 mt-0.5">${l.cal} kcal • <span class="text-emerald-400">${l.pro}P</span> • <span class="text-sky-400">${l.carb}C</span> • <span class="text-pink-400">${l.sug}S</span> • <span class="text-amber-400">${l.fat}F</span> • <span class="text-rose-400">${l.sod}Na</span></div>
+            <div class="text-[10px] text-slate-500 mt-0.5">${l.date} ${l.time} • ${l.method} ${isToday ? '<span class="text-emerald-400 font-medium">• Today</span>' : ''}</div>
+          </div>
+          <button onclick="deleteEntry(${l.id})" class="text-slate-500 hover:text-rose-400 px-2 py-1 text-sm">✕</button>
+        `;
+        listEl.appendChild(card);
+      });
+
+      document.getElementById('tot-items').innerText = todayCount;
+      document.getElementById('tot-cal').innerText = Math.round(cal);
+      document.getElementById('tot-pro').innerText = Math.round(pro);
+      document.getElementById('tot-carb').innerText = Math.round(carb);
+      document.getElementById('tot-sug').innerText = Math.round(sug);
+      document.getElementById('tot-fat').innerText = Math.round(fat);
+      document.getElementById('tot-sod').innerText = Math.round(sod);
+    }
+
+    function deleteEntry(id) {
+      logs = logs.filter(l => l.id !== id);
+      localStorage.setItem('macropulse_logs', JSON.stringify(logs));
+      renderLogs();
+    }
+
+    function clearToday() {
+      if (!confirm('Clear all logged entries from device history?')) return;
+      logs = [];
+      localStorage.setItem('macropulse_logs', JSON.stringify(logs));
+      renderLogs();
+    }
+
+    function copySheetRows() {
+      const todayLogical = getLogicalDateString();
+      const todayLogs = logs.filter(l => l.date === todayLogical);
+      if (!todayLogs.length) {
+        alert('No entries logged for today yet!');
+        return;
+      }
+      const rows = [...todayLogs].reverse().map(l =>
+        [l.date, l.time, l.item, l.portion, l.cal, l.pro, l.carb, l.sug, l.fat, l.sod, l.method].join('\t')
+      ).join('\n');
+      navigator.clipboard.writeText(rows).then(() => {
+        alert(`Copied ${todayLogs.length} row(s) from today formatted for Columns A–K!`);
+      });
+    }
+
+    function copyAllSheetRows() {
+      if (!logs.length) {
+        alert('No entries in history!');
+        return;
+      }
+      const rows = [...logs].reverse().map(l =>
+        [l.date, l.time, l.item, l.portion, l.cal, l.pro, l.carb, l.sug, l.fat, l.sod, l.method].join('\t')
+      ).join('\n');
+      navigator.clipboard.writeText(rows).then(() => {
+        alert(`Copied all ${logs.length} row(s) formatted for Columns A–K!`);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
