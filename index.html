@@ -587,12 +587,12 @@
     });
 
     // Client-Side Gemini Flash Parsing
-    async function callGeminiFlash(textQuery, imageBase64) {
+async function callGeminiFlash(textQuery, imageBase64) {
   const cleanKey = (state.apiKey || '').trim();
   if (!cleanKey) throw new Error("Gemini API Key missing in Profile settings.");
 
-  // Using v1 production route with clean key
-  const endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
+  // Direct endpoint using the live gemini-3.8-flash model
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
 
   const systemPrompt = `You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema:
   {
