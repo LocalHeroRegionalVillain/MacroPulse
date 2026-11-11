@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MacroPulse</title>
+  <title>MacroPulse v5.1</title>
   <style>
     :root {
       --bg: #0c0c0c;
@@ -27,45 +27,18 @@
       flex-direction: column;
     }
 
-    /* Top Bar */
     header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
     .brand { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
-    .btn-profile-trigger { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; padding: 6px 0; }
+    .btn-profile-trigger { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; padding: 8px; }
     .crimson-line { width: 100%; height: 2px; background: var(--accent); margin-bottom: 24px; }
 
-    /* Hero Calorie Section */
     .hero-calorie-block { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 30px; }
-    .hero-number { 
-      font-size: 50px; 
-      font-weight: 900; 
-      letter-spacing: -1.5px; 
-      line-height: 0.85; 
-      display: flex; 
-      align-items: baseline; 
-    }
+    .hero-number { font-size: 50px; font-weight: 900; letter-spacing: -1.5px; line-height: 0.85; display: flex; align-items: baseline; }
     .hero-comma { margin-left: -5px; margin-right: 4px; }
-    .hero-meta { 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: space-between; 
-      height: 42px; 
-    }
-    .label-calories-in { 
-      font-size: 10px; 
-      font-weight: 800; 
-      letter-spacing: 1.2px; 
-      color: var(--text-muted); 
-      line-height: 1; 
-    }
-    .label-calories-remaining { 
-      font-size: 18px; 
-      font-weight: 900; 
-      letter-spacing: -0.5px; 
-      color: var(--accent); 
-      line-height: 1; 
-    }
+    .hero-meta { display: flex; flex-direction: column; justify-content: space-between; height: 42px; }
+    .label-calories-in { font-size: 10px; font-weight: 800; letter-spacing: 1.2px; color: var(--text-muted); line-height: 1; }
+    .label-calories-remaining { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: var(--accent); line-height: 1; }
 
-    /* 3-Column Macro Deck */
     .macro-deck { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 34px; }
     .macro-card { background: var(--card-bg); height: 68px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
     .macro-label { font-size: 8px; font-weight: 800; letter-spacing: 1px; color: var(--text-muted); }
@@ -76,7 +49,6 @@
     .fill-protein { background: var(--accent); }
     .fill-cream { background: var(--text-main); }
 
-    /* Open Ledger Feed */
     .feed-header { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 14px; }
     .feed-list { display: flex; flex-direction: column; gap: 20px; }
     .entry-row { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -85,127 +57,46 @@
     .entry-sub { font-size: 11px; font-weight: 500; color: var(--text-muted); }
     .entry-cals { font-size: 15px; font-weight: 900; color: var(--text-main); }
 
-    /* Bottom Touch Action */
-    .bottom-bar { 
-      position: fixed; 
-      bottom: 0; 
-      left: 0; 
-      width: 100%; 
-      background: var(--bg); 
-      padding: 16px 20px 24px 20px; 
-      z-index: 50;
-    }
-    .btn-log-trigger { 
-      width: 100%; 
-      height: 50px; 
-      background: var(--accent); 
-      border: none; 
-      color: var(--text-main); 
-      font-size: 12px; 
-      font-weight: 900; 
-      letter-spacing: 2px; 
-      cursor: pointer; 
-      touch-action: manipulation;
-    }
+    .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); padding: 16px 20px 24px 20px; z-index: 50; }
+    .btn-log-trigger { width: 100%; height: 50px; background: var(--accent); border: none; color: var(--text-main); font-size: 12px; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
 
-    /* Modal / Bottom Drawer Styles */
-    .drawer-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.82);
-      display: none;
-      flex-direction: column;
-      justify-content: flex-end;
-      z-index: 100;
-    }
-    .drawer-content {
-      background: var(--bg);
-      border-top: 2px solid var(--accent);
-      padding: 24px 20px 32px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.82); display: none; flex-direction: column; justify-content: flex-end; z-index: 100; }
+    .drawer-content { background: var(--bg); border-top: 2px solid var(--accent); padding: 24px 20px 32px 20px; display: flex; flex-direction: column; gap: 16px; }
     .drawer-header { display: flex; justify-content: space-between; align-items: center; }
     .drawer-title { font-size: 13px; font-weight: 900; letter-spacing: 1.5px; }
-    .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; cursor: pointer; padding: 6px; }
+    .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; cursor: pointer; padding: 8px; }
 
-    /* Audio / Visual Touch Cards */
     .modalities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .modality-box {
-      background: var(--card-bg);
-      height: 130px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      touch-action: manipulation;
-    }
+    .modality-box { background: var(--card-bg); height: 130px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
     .modality-box:active { background: #1a1a1a; }
     .recording { border: 1px solid var(--accent); }
 
-    /* Stream Buffer */
-    .buffer-box {
-      background: var(--card-bg);
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-height: 60px;
-    }
+    .buffer-box { background: var(--card-bg); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 60px; }
     .buffer-label { font-size: 8px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); }
     .buffer-text { font-size: 13px; font-weight: 600; color: var(--text-main); min-height: 16px; word-break: break-word; }
 
-    /* Sub-bar / Key Switcher */
     .drawer-status-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; }
     .status-left { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.8px; }
     .status-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-    .btn-text-fallback { background: none; border: none; color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; padding: 6px 0; }
+    .btn-text-fallback { background: none; border: none; color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; padding: 6px; }
 
-    /* Enter Action */
-    .btn-enter { 
-      width: 100%; 
-      height: 50px; 
-      background: var(--accent); 
-      border: none; 
-      color: var(--text-main); 
-      font-size: 12px; 
-      font-weight: 900; 
-      letter-spacing: 2px; 
-      cursor: pointer; 
-      touch-action: manipulation;
-    }
+    .btn-enter { width: 100%; height: 50px; background: var(--accent); border: none; color: var(--text-main); font-size: 12px; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
     .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Profile Panel */
     .settings-input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
     .settings-label { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; }
-    .settings-input { 
-      background: var(--card-bg); 
-      border: 1px solid var(--border-subtle); 
-      color: var(--text-main); 
-      padding: 10px 12px; 
-      font-size: 14px; 
-      font-weight: 600; 
-      outline: none; 
-    }
+    .settings-input { background: var(--card-bg); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 10px 12px; font-size: 14px; font-weight: 600; outline: none; }
     .settings-input:focus { border-color: var(--accent); }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation -->
   <header>
-    <div class="brand">MacroPulse.</div>
-    <button type="button" class="btn-profile-trigger" id="btnOpenProfile">PROFILE</button>
+    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.1</span></div>
+    <button type="button" class="btn-profile-trigger" onclick="openProfileDrawer()">PROFILE</button>
   </header>
   <div class="crimson-line"></div>
 
-  <!-- Hero Calorie Block -->
   <div class="hero-calorie-block">
     <div class="hero-number">
       <span id="calsInThousands">0</span><span class="hero-comma">,</span><span id="calsInHundreds">000</span>
@@ -216,7 +107,6 @@
     </div>
   </div>
 
-  <!-- 3-Column Macro Deck -->
   <div class="macro-deck">
     <div class="macro-card">
       <div class="macro-label">PROTEIN</div>
@@ -235,29 +125,25 @@
     </div>
   </div>
 
-  <!-- Open Ledger Feed -->
   <div class="feed-header">ENTRIES</div>
   <div class="feed-list" id="feedList"></div>
 
-  <!-- Sticky Bottom Trigger -->
   <div class="bottom-bar">
-    <button type="button" class="btn-log-trigger" id="btnOpenLog">+ LOG ENTRY</button>
+    <button type="button" class="btn-log-trigger" onclick="openLogDrawer()">+ LOG ENTRY</button>
   </div>
 
-  <!-- Hidden Photo Capture Input -->
-  <input type="file" id="cameraInput" accept="image/*" style="display:none;">
+  <input type="file" id="cameraInput" accept="image/*" style="display:none;" onchange="handleCameraInput(event)">
 
   <!-- Audio-Visual Entry Drawer -->
   <div class="drawer-overlay" id="logDrawer">
     <div class="drawer-content">
       <div class="drawer-header">
         <div class="drawer-title">AUDIO-VISUAL CAPTURE</div>
-        <button type="button" class="drawer-close" id="btnCloseLog">ESC</button>
+        <button type="button" class="drawer-close" onclick="closeLogDrawer()">ESC</button>
       </div>
 
       <div class="modalities-grid">
-        <!-- Centered Waveform Icon -->
-        <div class="modality-box" id="boxAudio">
+        <div class="modality-box" id="boxAudio" onclick="handleAudioClick()">
           <svg width="60" height="50" viewBox="0 0 60 50">
             <line x1="10" y1="25" x2="10" y2="25" stroke="#fdfcf7" stroke-width="4" stroke-linecap="round"/>
             <line x1="20" y1="12" x2="20" y2="38" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
@@ -267,8 +153,7 @@
           </svg>
         </div>
 
-        <!-- Centered Aperture Icon -->
-        <div class="modality-box" id="boxVision">
+        <div class="modality-box" id="boxVision" onclick="document.getElementById('cameraInput').click()">
           <svg width="50" height="42" viewBox="0 0 50 42">
             <rect x="3" y="9" width="44" height="32" rx="2" fill="none" stroke="#fdfcf7" stroke-width="3"/>
             <rect x="19" y="3" width="12" height="6" fill="#fdfcf7"/>
@@ -277,7 +162,6 @@
         </div>
       </div>
 
-      <!-- Live Stream Buffer -->
       <div class="buffer-box">
         <div class="buffer-label">STREAM BUFFER</div>
         <div class="buffer-text" id="bufferContent">Tap an icon to capture audio or scan...</div>
@@ -288,10 +172,10 @@
           <div class="status-indicator" id="statusDot"></div>
           <span id="statusLabel">READY // GEMINI 3.5 FLASH-LITE</span>
         </div>
-        <button type="button" class="btn-text-fallback" id="btnManualPrompt">KEYBOARD</button>
+        <button type="button" class="btn-text-fallback" onclick="manualPromptFallback()">KEYBOARD</button>
       </div>
 
-      <button type="button" class="btn-enter" id="btnEnter">ENTER</button>
+      <button type="button" class="btn-enter" id="btnEnter" onclick="submitEntry()">ENTER</button>
     </div>
   </div>
 
@@ -300,7 +184,7 @@
     <div class="drawer-content">
       <div class="drawer-header">
         <div class="drawer-title">SYSTEM PROFILE &amp; CONFIG</div>
-        <button type="button" class="drawer-close" id="btnCloseProfile">ESC</button>
+        <button type="button" class="drawer-close" onclick="closeProfileDrawer()">ESC</button>
       </div>
 
       <div class="settings-input-group">
@@ -309,3 +193,404 @@
       </div>
 
       <div class="settings-input-group">
+        <label class="settings-label">GOOGLE APPS SCRIPT WEBHOOK URL</label>
+        <input type="text" class="settings-input" id="cfgWebhook" placeholder="https://script.google.com/.../exec">
+      </div>
+
+      <div class="settings-input-group">
+        <label class="settings-label">TARGET CALORIES</label>
+        <input type="number" class="settings-input" id="cfgGoalCals" value="2000">
+      </div>
+
+      <div class="settings-input-group">
+        <label class="settings-label">TARGET PROTEIN (G)</label>
+        <input type="number" class="settings-input" id="cfgGoalProtein" value="180">
+      </div>
+
+      <div class="settings-input-group">
+        <label class="settings-label">TARGET CARBS (G)</label>
+        <input type="number" class="settings-input" id="cfgGoalCarbs" value="200">
+      </div>
+
+      <div class="settings-input-group">
+        <label class="settings-label">TARGET FAT (G)</label>
+        <input type="number" class="settings-input" id="cfgGoalFat" value="65">
+      </div>
+
+      <button type="button" class="btn-enter" onclick="saveProfileSettings()">SAVE SETTINGS</button>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      entries: [],
+      capturedImageBase64: null,
+      capturedImageMime: 'image/jpeg',
+      capturedText: '',
+      isRecording: false,
+      goals: { cals: 2000, protein: 180, carbs: 200, fat: 65 },
+      apiKey: '',
+      webhookUrl: ''
+    };
+
+    function formatLocalYYYYMMDD(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return year + '-' + month + '-' + day;
+    }
+
+    function formatLocalHHMM(d) {
+      const hours = String(d.getHours()).padStart(2, '0');
+      const mins = String(d.getMinutes()).padStart(2, '0');
+      return hours + ':' + mins;
+    }
+
+    function getOperationalDayKey() {
+      const now = new Date();
+      const shifted = new Date(now.getTime() - (4 * 60 * 60 * 1000));
+      return formatLocalYYYYMMDD(shifted);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    // Direct Inline Button Functions (Guaranteed to respond)
+    function openLogDrawer() {
+      resetCaptureBuffer();
+      document.getElementById('logDrawer').style.display = 'flex';
+    }
+
+    function closeLogDrawer() {
+      document.getElementById('logDrawer').style.display = 'none';
+    }
+
+    function openProfileDrawer() {
+      document.getElementById('cfgApiKey').value = state.apiKey || '';
+      document.getElementById('cfgWebhook').value = state.webhookUrl || '';
+      document.getElementById('cfgGoalCals').value = (state.goals && state.goals.cals) ? state.goals.cals : 2000;
+      document.getElementById('cfgGoalProtein').value = (state.goals && state.goals.protein) ? state.goals.protein : 180;
+      document.getElementById('cfgGoalCarbs').value = (state.goals && state.goals.carbs) ? state.goals.carbs : 200;
+      document.getElementById('cfgGoalFat').value = (state.goals && state.goals.fat) ? state.goals.fat : 65;
+      document.getElementById('profileDrawer').style.display = 'flex';
+    }
+
+    function closeProfileDrawer() {
+      document.getElementById('profileDrawer').style.display = 'none';
+    }
+
+    function saveProfileSettings() {
+      state.apiKey = document.getElementById('cfgApiKey').value.trim();
+      state.webhookUrl = document.getElementById('cfgWebhook').value.trim();
+      state.goals = {
+        cals: parseInt(document.getElementById('cfgGoalCals').value, 10) || 2000,
+        protein: parseInt(document.getElementById('cfgGoalProtein').value, 10) || 180,
+        carbs: parseInt(document.getElementById('cfgGoalCarbs').value, 10) || 200,
+        fat: parseInt(document.getElementById('cfgGoalFat').value, 10) || 65
+      };
+      try {
+        localStorage.setItem('mp_apikey', state.apiKey);
+        localStorage.setItem('mp_api_key', state.apiKey);
+        localStorage.setItem('mp_webhook', state.webhookUrl);
+        localStorage.setItem('mp_webhook_url', state.webhookUrl);
+        localStorage.setItem('mp_goals', JSON.stringify(state.goals));
+      } catch (e) {}
+      closeProfileDrawer();
+      renderMetrics();
+    }
+
+    function loadPersistedData() {
+      try {
+        const savedGoals = JSON.parse(localStorage.getItem('mp_goals') || 'null');
+        if (savedGoals && typeof savedGoals === 'object') {
+          state.goals = {
+            cals: Number(savedGoals.cals) || 2000,
+            protein: Number(savedGoals.protein) || 180,
+            carbs: Number(savedGoals.carbs) || 200,
+            fat: Number(savedGoals.fat) || 65
+          };
+        }
+      } catch (e) {}
+
+      try {
+        state.apiKey = localStorage.getItem('mp_apikey') || localStorage.getItem('mp_api_key') || '';
+        state.webhookUrl = localStorage.getItem('mp_webhook') || localStorage.getItem('mp_webhook_url') || '';
+      } catch (e) {}
+
+      const dayKey = getOperationalDayKey();
+      try {
+        const raw = localStorage.getItem('mp_entries_' + dayKey);
+        const parsed = raw ? JSON.parse(raw) : null;
+        state.entries = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        state.entries = [];
+      }
+
+      renderFeed();
+      renderMetrics();
+    }
+
+    function persistEntries() {
+      try {
+        const dayKey = getOperationalDayKey();
+        localStorage.setItem('mp_entries_' + dayKey, JSON.stringify(state.entries));
+      } catch (e) {}
+    }
+
+    function renderMetrics() {
+      if (!Array.isArray(state.entries)) state.entries = [];
+      const totals = state.entries.reduce((acc, cur) => {
+        if (!cur) return acc;
+        acc.cals += Number(cur.calories) || 0;
+        acc.protein += Number(cur.protein) || 0;
+        acc.carbs += Number(cur.carbs) || 0;
+        acc.fat += Number(cur.fat) || 0;
+        return acc;
+      }, { cals: 0, protein: 0, carbs: 0, fat: 0 });
+
+      const calsVal = Math.round(totals.cals);
+      if (calsVal >= 1000) {
+        const calsStr = calsVal.toString();
+        document.getElementById('calsInThousands').textContent = calsStr.slice(0, -3);
+        document.getElementById('calsInHundreds').textContent = calsStr.slice(-3);
+      } else {
+        document.getElementById('calsInThousands').textContent = '0';
+        document.getElementById('calsInHundreds').textContent = calsVal.toString().padStart(3, '0');
+      }
+
+      const goalCals = (state.goals && state.goals.cals) ? state.goals.cals : 2000;
+      const remaining = goalCals - calsVal;
+      document.getElementById('labelRemaining').textContent = Math.abs(remaining) + (remaining >= 0 ? ' REMAINING' : ' OVER TARGET');
+
+      document.getElementById('valProtein').textContent = Math.round(totals.protein);
+      document.getElementById('valCarbs').textContent = Math.round(totals.carbs);
+      document.getElementById('valFat').textContent = Math.round(totals.fat);
+
+      const pPct = Math.min(100, Math.round((totals.protein / ((state.goals && state.goals.protein) || 180)) * 100));
+      const cPct = Math.min(100, Math.round((totals.carbs / ((state.goals && state.goals.carbs) || 200)) * 100));
+      const fPct = Math.min(100, Math.round((totals.fat / ((state.goals && state.goals.fat) || 65)) * 100));
+
+      document.getElementById('barProtein').style.width = pPct + '%';
+      document.getElementById('barCarbs').style.width = cPct + '%';
+      document.getElementById('barFat').style.width = fPct + '%';
+    }
+
+    function renderFeed() {
+      const feedEl = document.getElementById('feedList');
+      feedEl.innerHTML = '';
+      if (!Array.isArray(state.entries) || state.entries.length === 0) {
+        feedEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-weight:600;">No entries recorded yet today.</div>';
+        return;
+      }
+      state.entries.slice().reverse().forEach(entry => {
+        if (!entry) return;
+        const row = document.createElement('div');
+        row.className = 'entry-row';
+        row.innerHTML = 
+          '<div class="entry-main">' +
+            '<div class="entry-name">' + escapeHtml(entry.item || 'Food Item') + '</div>' +
+            '<div class="entry-sub">' + (Number(entry.protein) || 0) + 'P · ' + (Number(entry.carbs) || 0) + 'C · ' + (Number(entry.fat) || 0) + 'F · ' + (Number(entry.sodium) || 0) + 'mg Sodium</div>' +
+          '</div>' +
+          '<div class="entry-cals">' + (Number(entry.calories) || 0) + '</div>';
+        feedEl.appendChild(row);
+      });
+    }
+
+    // Speech Recognition
+    let recognition = null;
+    try {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechConstructor();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          state.isRecording = true;
+          document.getElementById('boxAudio').classList.add('recording');
+          document.getElementById('statusLabel').textContent = 'LISTENING...';
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = Array.from(event.results)
+            .map(result => result[0].transcript)
+            .join('');
+          state.capturedText = transcript;
+          document.getElementById('bufferContent').textContent = '"' + transcript + '"';
+        };
+
+        recognition.onerror = () => resetCaptureState();
+        recognition.onend = () => resetCaptureState();
+      }
+    } catch (e) {}
+
+    function handleAudioClick() {
+      if (!recognition) {
+        manualPromptFallback();
+        return;
+      }
+      if (state.isRecording) {
+        try { recognition.stop(); } catch (e) {}
+      } else {
+        try { recognition.start(); } catch (e) { manualPromptFallback(); }
+      }
+    }
+
+    function resetCaptureState() {
+      state.isRecording = false;
+      document.getElementById('boxAudio').classList.remove('recording');
+      document.getElementById('statusLabel').textContent = 'READY // GEMINI 3.5 FLASH-LITE';
+    }
+
+    function handleCameraInput(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      state.capturedImageMime = file.type || 'image/jpeg';
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Data = event.target.result.split(',')[1];
+        state.capturedImageBase64 = base64Data;
+        state.capturedText = '';
+        document.getElementById('bufferContent').textContent = '[Image Captured: ' + file.name + '] Ready for vision parsing.';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function manualPromptFallback() {
+      const input = prompt("Describe food or meal directly:", state.capturedText);
+      if (input !== null && input.trim() !== "") {
+        state.capturedText = input.trim();
+        state.capturedImageBase64 = null;
+        document.getElementById('bufferContent').textContent = '"' + input.trim() + '"';
+      }
+    }
+
+    function resetCaptureBuffer() {
+      state.capturedImageBase64 = null;
+      state.capturedImageMime = 'image/jpeg';
+      state.capturedText = '';
+      document.getElementById('bufferContent').textContent = 'Tap an icon to capture audio or scan...';
+      document.getElementById('statusLabel').textContent = 'READY // GEMINI 3.5 FLASH-LITE';
+      const btn = document.getElementById('btnEnter');
+      btn.disabled = false;
+      btn.textContent = 'ENTER';
+      document.getElementById('cameraInput').value = '';
+    }
+
+    async function submitEntry() {
+      if (!state.capturedText && !state.capturedImageBase64) {
+        alert("Please speak, take a photo, or tap KEYBOARD first.");
+        return;
+      }
+
+      const btn = document.getElementById('btnEnter');
+      btn.disabled = true;
+      btn.textContent = 'PARSING...';
+
+      try {
+        const parsedItem = await callGeminiFlash(state.capturedText, state.capturedImageBase64, state.capturedImageMime);
+        state.entries.push(parsedItem);
+        persistEntries();
+        renderMetrics();
+        renderFeed();
+        closeLogDrawer();
+        syncToSheets(parsedItem);
+      } catch (err) {
+        alert("Failed to parse: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ENTER';
+      }
+    }
+
+    async function callGeminiFlash(textQuery, imageBase64, imageMime) {
+      const cleanKey = (state.apiKey || '').trim();
+      if (!cleanKey) throw new Error("Gemini API Key missing in Profile settings.");
+
+      const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=' + encodeURIComponent(cleanKey);
+
+      const systemPrompt = 'You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema: {"item": "Clean short name of food", "calories": number, "protein": number, "carbs": number, "sugar": number, "fat": number, "sodium": number}. Estimate realistically if exact macros are not specified. Return NO markdown code blocks, just raw JSON.';
+
+      const parts = [];
+      if (imageBase64) {
+        parts.push({
+          inlineData: {
+            mimeType: imageMime || 'image/jpeg',
+            data: imageBase64
+          }
+        });
+      }
+      if (textQuery) {
+        parts.push({ text: textQuery });
+      } else {
+        parts.push({ text: "Parse this nutrition label or meal image." });
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: parts }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error('HTTP ' + response.status + ': ' + errorBody);
+      }
+
+      const data = await response.json();
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts[0]) {
+        throw new Error("Empty response from Gemini API.");
+      }
+
+      let rawText = data.candidates[0].content.parts[0].text.trim();
+      rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
+      return JSON.parse(rawText);
+    }
+
+    function syncToSheets(entry) {
+      const url = (state.webhookUrl || '').trim();
+      if (!url) return;
+
+      const now = new Date();
+      const operationalDateStr = getOperationalDayKey();
+      const localTimeStr = formatLocalHHMM(now);
+
+      const payload = {
+        action: "append_food_log",
+        source: "MacroPulse",
+        timestamp: now.toISOString(),
+        entry: {
+          date: operationalDateStr,
+          time: localTimeStr,
+          item: entry.item || "Unknown item",
+          portion: "1 serving",
+          calories: Number(entry.calories) || 0,
+          protein: Number(entry.protein) || 0,
+          carbs: Number(entry.carbs) || 0,
+          sugar: Number(entry.sugar) || 0,
+          fat: Number(entry.fat) || 0,
+          sodium: Number(entry.sodium) || 0,
+          logMethod: "MacroPulse"
+        }
+      };
+
+      fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.warn('Background sync deferred:', err));
+    }
+
+    loadPersistedData();
+  </script>
+</body>
+</html>
