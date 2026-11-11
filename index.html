@@ -30,7 +30,7 @@
     /* Top Bar */
     header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
     .brand { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
-    .btn-profile-trigger { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; }
+    .btn-profile-trigger { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; cursor: pointer; padding: 6px 0; }
     .crimson-line { width: 100%; height: 2px; background: var(--accent); margin-bottom: 24px; }
 
     /* Hero Calorie Section */
@@ -93,6 +93,7 @@
       width: 100%; 
       background: var(--bg); 
       padding: 16px 20px 24px 20px; 
+      z-index: 50;
     }
     .btn-log-trigger { 
       width: 100%; 
@@ -104,6 +105,7 @@
       font-weight: 900; 
       letter-spacing: 2px; 
       cursor: pointer; 
+      touch-action: manipulation;
     }
 
     /* Modal / Bottom Drawer Styles */
@@ -129,7 +131,7 @@
     }
     .drawer-header { display: flex; justify-content: space-between; align-items: center; }
     .drawer-title { font-size: 13px; font-weight: 900; letter-spacing: 1.5px; }
-    .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; cursor: pointer; }
+    .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; cursor: pointer; padding: 6px; }
 
     /* Audio / Visual Touch Cards */
     .modalities-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -141,6 +143,7 @@
       justify-content: center;
       cursor: pointer;
       user-select: none;
+      touch-action: manipulation;
     }
     .modality-box:active { background: #1a1a1a; }
     .recording { border: 1px solid var(--accent); }
@@ -155,13 +158,13 @@
       min-height: 60px;
     }
     .buffer-label { font-size: 8px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); }
-    .buffer-text { font-size: 13px; font-weight: 600; color: var(--text-main); min-height: 16px; }
+    .buffer-text { font-size: 13px; font-weight: 600; color: var(--text-main); min-height: 16px; word-break: break-word; }
 
     /* Sub-bar / Key Switcher */
     .drawer-status-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; }
     .status-left { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.8px; }
     .status-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-    .btn-text-fallback { background: none; border: none; color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; }
+    .btn-text-fallback { background: none; border: none; color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; padding: 6px 0; }
 
     /* Enter Action */
     .btn-enter { 
@@ -174,6 +177,7 @@
       font-weight: 900; 
       letter-spacing: 2px; 
       cursor: pointer; 
+      touch-action: manipulation;
     }
     .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -197,7 +201,7 @@
   <!-- Top Navigation -->
   <header>
     <div class="brand">MacroPulse.</div>
-    <button class="btn-profile-trigger" id="btnOpenProfile">PROFILE</button>
+    <button type="button" class="btn-profile-trigger" id="btnOpenProfile">PROFILE</button>
   </header>
   <div class="crimson-line"></div>
 
@@ -208,7 +212,7 @@
     </div>
     <div class="hero-meta">
       <div class="label-calories-in">CALORIES IN</div>
-      <div class="label-calories-remaining" id="labelRemaining">0 REMAINING</div>
+      <div class="label-calories-remaining" id="labelRemaining">2000 REMAINING</div>
     </div>
   </div>
 
@@ -237,18 +241,18 @@
 
   <!-- Sticky Bottom Trigger -->
   <div class="bottom-bar">
-    <button class="btn-log-trigger" id="btnOpenLog">+ LOG ENTRY</button>
+    <button type="button" class="btn-log-trigger" id="btnOpenLog">+ LOG ENTRY</button>
   </div>
 
   <!-- Hidden Photo Capture Input -->
-  <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+  <input type="file" id="cameraInput" accept="image/*" style="display:none;">
 
   <!-- Audio-Visual Entry Drawer -->
   <div class="drawer-overlay" id="logDrawer">
     <div class="drawer-content">
       <div class="drawer-header">
         <div class="drawer-title">AUDIO-VISUAL CAPTURE</div>
-        <button class="drawer-close" id="btnCloseLog">ESC</button>
+        <button type="button" class="drawer-close" id="btnCloseLog">ESC</button>
       </div>
 
       <div class="modalities-grid">
@@ -282,12 +286,12 @@
       <div class="drawer-status-row">
         <div class="status-left">
           <div class="status-indicator" id="statusDot"></div>
-          <span id="statusLabel">READY // MULTIMODAL FLASH</span>
+          <span id="statusLabel">READY // GEMINI 3.5 FLASH-LITE</span>
         </div>
-        <button class="btn-text-fallback" id="btnManualPrompt">KEYBOARD</button>
+        <button type="button" class="btn-text-fallback" id="btnManualPrompt">KEYBOARD</button>
       </div>
 
-      <button class="btn-enter" id="btnEnter">ENTER</button>
+      <button type="button" class="btn-enter" id="btnEnter">ENTER</button>
     </div>
   </div>
 
@@ -296,7 +300,7 @@
     <div class="drawer-content">
       <div class="drawer-header">
         <div class="drawer-title">SYSTEM PROFILE &amp; CONFIG</div>
-        <button class="drawer-close" id="btnCloseProfile">ESC</button>
+        <button type="button" class="drawer-close" id="btnCloseProfile">ESC</button>
       </div>
 
       <div class="settings-input-group">
@@ -305,257 +309,3 @@
       </div>
 
       <div class="settings-input-group">
-        <label class="settings-label">GOOGLE APPS SCRIPT WEBHOOK URL</label>
-        <input type="text" class="settings-input" id="cfgWebhook" placeholder="https://script.google.com/.../exec">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET CALORIES</label>
-        <input type="number" class="settings-input" id="cfgGoalCals" value="2000">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET PROTEIN (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalProtein" value="180">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET CARBS (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalCarbs" value="200">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET FAT (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalFat" value="65">
-      </div>
-
-      <button class="btn-enter" id="btnSaveProfile">SAVE SETTINGS</button>
-    </div>
-  </div>
-
-  <script>
-    // System State
-    const state = {
-      entries: [],
-      capturedImageBase64: null,
-      capturedText: '',
-      isRecording: false,
-      goals: { cals: 2000, protein: 180, carbs: 200, fat: 65 },
-      apiKey: '',
-      webhookUrl: ''
-    };
-
-    // Calculate current operational day string (reset boundary 4:00 AM)
-    function getOperationalDayKey() {
-      const now = new Date();
-      const shifted = new Date(now.getTime() - (4 * 60 * 60 * 1000));
-      return shifted.toISOString().split('T')[0];
-    }
-
-    // Storage Management
-    function loadPersistedData() {
-      const savedGoals = localStorage.getItem('mp_goals');
-      if (savedGoals) {
-        try { state.goals = JSON.parse(savedGoals); } catch (e) {}
-      }
-      state.apiKey = localStorage.getItem('mp_apikey') || '';
-      state.webhookUrl = localStorage.getItem('mp_webhook') || '';
-
-      const dayKey = getOperationalDayKey();
-      const savedEntries = localStorage.getItem(`mp_entries_${dayKey}`);
-      if (savedEntries) {
-        try { state.entries = JSON.parse(savedEntries); } catch (e) { state.entries = []; }
-      } else {
-        state.entries = [];
-      }
-
-      renderFeed();
-      renderMetrics();
-    }
-
-    function persistEntries() {
-      const dayKey = getOperationalDayKey();
-      localStorage.setItem(`mp_entries_${dayKey}`, JSON.stringify(state.entries));
-    }
-
-    // Render Hero & Macro Gauges
-    function renderMetrics() {
-      const totals = state.entries.reduce((acc, cur) => {
-        acc.cals += Number(cur.calories) || 0;
-        acc.protein += Number(cur.protein) || 0;
-        acc.carbs += Number(cur.carbs) || 0;
-        acc.fat += Number(cur.fat) || 0;
-        return acc;
-      }, { cals: 0, protein: 0, carbs: 0, fat: 0 });
-
-      const calsStr = totals.cals.toString();
-      if (totals.cals >= 1000) {
-        document.getElementById('calsInThousands').textContent = calsStr.slice(0, -3);
-        document.getElementById('calsInHundreds').textContent = calsStr.slice(-3);
-      } else {
-        document.getElementById('calsInThousands').textContent = '0';
-        document.getElementById('calsInHundreds').textContent = calsStr.padStart(3, '0');
-      }
-
-      const remaining = state.goals.cals - totals.cals;
-      document.getElementById('labelRemaining').textContent = `${Math.abs(remaining)} ${remaining >= 0 ? 'REMAINING' : 'OVER TARGET'}`;
-
-      document.getElementById('valProtein').textContent = Math.round(totals.protein);
-      document.getElementById('valCarbs').textContent = Math.round(totals.carbs);
-      document.getElementById('valFat').textContent = Math.round(totals.fat);
-
-      const pPct = Math.min(100, Math.round((totals.protein / state.goals.protein) * 100));
-      const cPct = Math.min(100, Math.round((totals.carbs / state.goals.carbs) * 100));
-      const fPct = Math.min(100, Math.round((totals.fat / state.goals.fat) * 100));
-
-      document.getElementById('barProtein').style.width = `${pPct}%`;
-      document.getElementById('barCarbs').style.width = `${cPct}%`;
-      document.getElementById('barFat').style.width = `${fPct}%`;
-    }
-
-    // Render Ledger Feed
-    function renderFeed() {
-      const feedEl = document.getElementById('feedList');
-      feedEl.innerHTML = '';
-      state.entries.slice().reverse().forEach(entry => {
-        const row = document.createElement('div');
-        row.className = 'entry-row';
-        row.innerHTML = `
-          <div class="entry-main">
-            <div class="entry-name">${entry.item}</div>
-            <div class="entry-sub">${entry.protein}P · ${entry.carbs}C · ${entry.fat}F · ${entry.sodium || 0}mg Sodium</div>
-          </div>
-          <div class="entry-cals">${entry.calories}</div>
-        `;
-        feedEl.appendChild(row);
-      });
-    }
-
-    // Modal Drawer Controls
-    const logDrawer = document.getElementById('logDrawer');
-    const profileDrawer = document.getElementById('profileDrawer');
-
-    document.getElementById('btnOpenLog').addEventListener('click', () => {
-      resetCaptureBuffer();
-      logDrawer.style.display = 'flex';
-    });
-    document.getElementById('btnCloseLog').addEventListener('click', () => logDrawer.style.display = 'none');
-
-    document.getElementById('btnOpenProfile').addEventListener('click', () => {
-      document.getElementById('cfgApiKey').value = state.apiKey;
-      document.getElementById('cfgWebhook').value = state.webhookUrl;
-      document.getElementById('cfgGoalCals').value = state.goals.cals;
-      document.getElementById('cfgGoalProtein').value = state.goals.protein;
-      document.getElementById('cfgGoalCarbs').value = state.goals.carbs;
-      document.getElementById('cfgGoalFat').value = state.goals.fat;
-      profileDrawer.style.display = 'flex';
-    });
-    document.getElementById('btnCloseProfile').addEventListener('click', () => profileDrawer.style.display = 'none');
-
-    document.getElementById('btnSaveProfile').addEventListener('click', () => {
-      state.apiKey = document.getElementById('cfgApiKey').value.trim();
-      state.webhookUrl = document.getElementById('cfgWebhook').value.trim();
-      state.goals = {
-        cals: parseInt(document.getElementById('cfgGoalCals').value, 10) || 2000,
-        protein: parseInt(document.getElementById('cfgGoalProtein').value, 10) || 180,
-        carbs: parseInt(document.getElementById('cfgGoalCarbs').value, 10) || 200,
-        fat: parseInt(document.getElementById('cfgGoalFat').value, 10) || 65
-      };
-      localStorage.setItem('mp_apikey', state.apiKey);
-      localStorage.setItem('mp_webhook', state.webhookUrl);
-      localStorage.setItem('mp_goals', JSON.stringify(state.goals));
-      profileDrawer.style.display = 'none';
-      renderMetrics();
-    });
-
-    // Native Audio Recording
-    const boxAudio = document.getElementById('boxAudio');
-    let recognition = null;
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechConstructor();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-
-      recognition.onstart = () => {
-        state.isRecording = true;
-        boxAudio.classList.add('recording');
-        document.getElementById('statusLabel').textContent = 'LISTENING...';
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
-          .join('');
-        state.capturedText = transcript;
-        document.getElementById('bufferContent').textContent = `"${transcript}"`;
-      };
-
-      recognition.onerror = () => resetCaptureState();
-      recognition.onend = () => resetCaptureState();
-    }
-
-    boxAudio.addEventListener('click', () => {
-      if (!recognition) {
-        manualPromptFallback();
-        return;
-      }
-      if (state.isRecording) {
-        recognition.stop();
-      } else {
-        recognition.start();
-      }
-    });
-
-    function resetCaptureState() {
-      state.isRecording = false;
-      boxAudio.classList.remove('recording');
-      document.getElementById('statusLabel').textContent = 'DIRECT MULTIMODAL FLASH (AUDIO / VISION)';
-    }
-
-    // Vision / Camera Capture
-    const boxVision = document.getElementById('boxVision');
-    const cameraInput = document.getElementById('cameraInput');
-
-    boxVision.addEventListener('click', () => cameraInput.click());
-
-    cameraInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Data = event.target.result.split(',')[1];
-        state.capturedImageBase64 = base64Data;
-        state.capturedText = '';
-        document.getElementById('bufferContent').textContent = `[Image Captured: ${file.name}] Ready for vision parsing.`;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    // Keyboard Fallback
-    document.getElementById('btnManualPrompt').addEventListener('click', manualPromptFallback);
-
-    function manualPromptFallback() {
-      const input = prompt("Describe food or meal directly:", state.capturedText);
-      if (input !== null && input.trim() !== "") {
-        state.capturedText = input.trim();
-        state.capturedImageBase64 = null;
-        document.getElementById('bufferContent').textContent = `"${input.trim()}"`;
-      }
-    }
-
-    function resetCaptureBuffer() {
-      state.capturedImageBase64 = null;
-      state.capturedText = '';
-      document.getElementById('bufferContent').textContent = 'Tap an icon to capture audio or scan...';
-      document.getElementById('statusLabel').textContent = 'DIRECT MULTIMODAL FLASH (AUDIO / VISION)';
-      document.getElementById('btnEnter').disabled = false;
-      document.getElementById('btnEnter').textContent = 'ENTER';
-    }
-
-    // Enter & Direct Gemini Flash Parse
-    document.getElementById('btnEnter').addEventListener('click', async () => {
-      if (!state.capturedText && !state.capturedImageBase64) {
-        alert("Please speak or take a photo
