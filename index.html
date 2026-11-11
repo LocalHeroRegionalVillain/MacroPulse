@@ -588,51 +588,57 @@
 
     // Client-Side Gemini Flash Parsing
     async function callGeminiFlash(textQuery, imageBase64) {
-      if (!state.apiKey) throw new Error("Gemini API Key missing in Profile settings.");
+  const cleanKey = (state.apiKey || '').trim();
+  if (!cleanKey) throw new Error("Gemini API Key missing in Profile settings.");
 
-const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.apiKey}`;
-      const systemPrompt = `You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema:
-      {
-        "item": "Clean short name of food",
-        "calories": number,
-        "protein": number,
-        "carbs": number,
-        "fat": number,
-        "sodium": number
+  // Using v1 production route with clean key
+  const endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
+
+  const systemPrompt = `You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema:
+  {
+    "item": "Clean short name of food",
+    "calories": number,
+    "protein": number,
+    "carbs": number,
+    "fat": number,
+    "sodium": number
+  }
+  Estimate realistically if exact macros are not specified. Return NO markdown code blocks, just raw JSON.`;
+
+  const parts = [];
+  if (imageBase64) {
+    parts.push({
+      inlineData: {
+        mimeType: "image/jpeg",
+        data: imageBase64
       }
-      Estimate realistically if exact macros are not specified. Return NO markdown code blocks, just raw JSON.`;
+    });
+  }
+  if (textQuery) {
+    parts.push({ text: textQuery });
+  } else {
+    parts.push({ text: "Parse this nutrition label or meal image." });
+  }
 
-      const parts = [];
-      if (imageBase64) {
-        parts.push({
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: imageBase64
-          }
-        });
-      }
-      if (textQuery) {
-        parts.push({ text: textQuery });
-      } else {
-        parts.push({ text: "Parse this nutrition label or meal image." });
-      }
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { responseMimeType: "application/json" }
+    })
+  });
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`HTTP ${response.status}: ${errorBody}`);
+  }
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      const rawText = data.candidates[0].content.parts[0].text;
-      return JSON.parse(rawText);
-    }
-
+  const data = await response.json();
+  const rawText = data.candidates[0].content.parts[0].text;
+  return JSON.parse(rawText);
+}
     // Fire-and-Forget Google Sheets Sync
     function syncToSheets(entry) {
       if (!state.webhookUrl) return;
