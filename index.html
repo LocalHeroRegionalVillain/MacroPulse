@@ -580,7 +580,7 @@
         syncToSheets(parsedItem);
 
       } catch (err) {
-        alert("Failed to parse: " + err.message);
+        alert("Failed to parse: " + err.message);0
         btn.disabled = false;
         btn.textContent = 'ENTER';
       }
@@ -590,8 +590,7 @@
     async function callGeminiFlash(textQuery, imageBase64) {
       if (!state.apiKey) throw new Error("Gemini API Key missing in Profile settings.");
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.apiKey}`;
-
+const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.apiKey}`;
       const systemPrompt = `You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema:
       {
         "item": "Clean short name of food",
