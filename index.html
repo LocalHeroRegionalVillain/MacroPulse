@@ -1,4 +1,4 @@
-<!DOCTYPE html>f
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -155,7 +155,7 @@
       min-height: 60px;
     }
     .buffer-label { font-size: 8px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); }
-    .buffer-text { font-size: 13px; font-weight: 600; color: var(--text-main); min-height: 16px; }
+    .buffer-text { font-size: 13px; font-weight: 600; color: var(--text-main); min-height: 16px; word-break: break-word; }
 
     /* Sub-bar / Key Switcher */
     .drawer-status-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; }
@@ -208,7 +208,7 @@
     </div>
     <div class="hero-meta">
       <div class="label-calories-in">CALORIES IN</div>
-      <div class="label-calories-remaining" id="labelRemaining">0 REMAINING</div>
+      <div class="label-calories-remaining" id="labelRemaining">2000 REMAINING</div>
     </div>
   </div>
 
@@ -252,7 +252,7 @@
       </div>
 
       <div class="modalities-grid">
-        <!-- Centered Waveform Icon -->
+        <!-- Voice Dictation Box -->
         <div class="modality-box" id="boxAudio">
           <svg width="60" height="50" viewBox="0 0 60 50">
             <line x1="10" y1="25" x2="10" y2="25" stroke="#fdfcf7" stroke-width="4" stroke-linecap="round"/>
@@ -263,7 +263,7 @@
           </svg>
         </div>
 
-        <!-- Centered Aperture Icon -->
+        <!-- Vision / Camera Scan Box -->
         <div class="modality-box" id="boxVision">
           <svg width="50" height="42" viewBox="0 0 50 42">
             <rect x="3" y="9" width="44" height="32" rx="2" fill="none" stroke="#fdfcf7" stroke-width="3"/>
@@ -282,7 +282,7 @@
       <div class="drawer-status-row">
         <div class="status-left">
           <div class="status-indicator" id="statusDot"></div>
-          <span id="statusLabel">READY // MULTIMODAL FLASH</span>
+          <span id="statusLabel">READY // GEMINI 3.5 FLASH-LITE</span>
         </div>
         <button class="btn-text-fallback" id="btnManualPrompt">KEYBOARD</button>
       </div>
@@ -295,7 +295,7 @@
   <div class="drawer-overlay" id="profileDrawer">
     <div class="drawer-content">
       <div class="drawer-header">
-        <div class="drawer-title">SYSTEM PROFILE &amp; CONFIG</div>
+        <div class="drawer-title">SYSTEM PROFILE & CONFIG</div>
         <button class="drawer-close" id="btnCloseProfile">ESC</button>
       </div>
 
@@ -306,27 +306,27 @@
 
       <div class="settings-input-group">
         <label class="settings-label">GOOGLE APPS SCRIPT WEBHOOK URL</label>
-        <input type="text" class="settings-input" id="cfgWebhook" placeholder="https://script.google.com/.../exec">
+        <input type="text" class="settings-input" id="cfgWebhook" placeholder="https://script.google.com/macros/s/.../exec">
       </div>
 
       <div class="settings-input-group">
         <label class="settings-label">TARGET CALORIES</label>
-        <input type="number" class="settings-input" id="cfgGoalCals" value="2000">
+        <input type="number" class="settings-input" id="cfgTargetCals" value="2000">
       </div>
 
       <div class="settings-input-group">
         <label class="settings-label">TARGET PROTEIN (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalProtein" value="180">
+        <input type="number" class="settings-input" id="cfgTargetProtein" value="180">
       </div>
 
       <div class="settings-input-group">
         <label class="settings-label">TARGET CARBS (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalCarbs" value="200">
+        <input type="number" class="settings-input" id="cfgTargetCarbs" value="200">
       </div>
 
       <div class="settings-input-group">
         <label class="settings-label">TARGET FAT (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalFat" value="65">
+        <input type="number" class="settings-input" id="cfgTargetFat" value="65">
       </div>
 
       <button class="btn-enter" id="btnSaveProfile">SAVE SETTINGS</button>
@@ -334,360 +334,330 @@
   </div>
 
   <script>
-    // System State
+    // System State & Config
     const state = {
-      entries: [],
-      capturedImageBase64: null,
-      capturedText: '',
-      isRecording: false,
-      goals: { cals: 2000, protein: 180, carbs: 200, fat: 65 },
-      apiKey: '',
-      webhookUrl: ''
+      apiKey: localStorage.getItem('mp_api_key') || '',
+      webhookUrl: localStorage.getItem('mp_webhook_url') || '',
+      targetCals: parseInt(localStorage.getItem('mp_target_cals') || '2000', 10),
+      targetProtein: parseInt(localStorage.getItem('mp_target_protein') || '180', 10),
+      targetCarbs: parseInt(localStorage.getItem('mp_target_carbs') || '200', 10),
+      targetFat: parseInt(localStorage.getItem('mp_target_fat') || '65', 10),
+      entries: JSON.parse(localStorage.getItem('mp_entries') || '[]'),
+      currentBufferText: '',
+      currentBase64Image: null,
+      isRecording: false
     };
 
-    // Calculate current operational day string (reset boundary 4:00 AM)
-    function getOperationalDayKey() {
-      const now = new Date();
-      const shifted = new Date(now.getTime() - (4 * 60 * 60 * 1000));
-      return shifted.toISOString().split('T')[0];
-    }
-
-    // Storage Management
-    function loadPersistedData() {
-      const savedGoals = localStorage.getItem('mp_goals');
-      if (savedGoals) state.goals = JSON.parse(savedGoals);
-      state.apiKey = localStorage.getItem('mp_apikey') || '';
-      state.webhookUrl = localStorage.getItem('mp_webhook') || '';
-
-      const dayKey = getOperationalDayKey();
-      const savedEntries = localStorage.getItem(`mp_entries_${dayKey}`);
-      state.entries = savedEntries ? JSON.parse(savedEntries) : [];
-
-      renderFeed();
-      renderMetrics();
-    }
-
-    function persistEntries() {
-      const dayKey = getOperationalDayKey();
-      localStorage.setItem(`mp_entries_${dayKey}`, JSON.stringify(state.entries));
-    }
-
-    // Render Hero & Macro Gauges
-    function renderMetrics() {
-      const totals = state.entries.reduce((acc, cur) => {
-        acc.cals += cur.calories || 0;
-        acc.protein += cur.protein || 0;
-        acc.carbs += cur.carbs || 0;
-        acc.fat += cur.fat || 0;
-        return acc;
-      }, { cals: 0, protein: 0, carbs: 0, fat: 0 });
-
-      // Split 1,450 into '1' and '450' for balanced kerning
-      const formattedCals = totals.cals.toLocaleString();
-      if (totals.cals >= 1000) {
-        const parts = formattedCals.split(',');
-        document.getElementById('calsInThousands').textContent = parts[0];
-        document.getElementById('calsInHundreds').textContent = parts[1];
-        document.querySelector('.hero-comma').style.display = 'inline';
-      } else {
-        document.getElementById('calsInThousands').textContent = '0';
-        document.getElementById('calsInHundreds').textContent = totals.cals.toString().padStart(3, '0');
-        document.querySelector('.hero-comma').style.display = 'inline';
+    // 4:00 AM Daily Rollover Key Helper
+    function getOperationalDateKey(dateObj = new Date()) {
+      const d = new Date(dateObj);
+      if (d.getHours() < 4) {
+        d.setDate(d.getDate() - 1);
       }
-
-      const remaining = state.goals.cals - totals.cals;
-      document.getElementById('labelRemaining').textContent = `${remaining} REMAINING`;
-
-      document.getElementById('valProtein').textContent = totals.protein;
-      document.getElementById('valCarbs').textContent = totals.carbs;
-      document.getElementById('valFat').textContent = totals.fat;
-
-      const pPct = Math.min(100, Math.round((totals.protein / state.goals.protein) * 100));
-      const cPct = Math.min(100, Math.round((totals.carbs / state.goals.carbs) * 100));
-      const fPct = Math.min(100, Math.round((totals.fat / state.goals.fat) * 100));
-
-      document.getElementById('barProtein').style.width = `${pPct}%`;
-      document.getElementById('barCarbs').style.width = `${cPct}%`;
-      document.getElementById('barFat').style.width = `${fPct}%`;
+      return d.toISOString().split('T')[0];
     }
 
-    // Render Ledger Feed
-    function renderFeed() {
-      const feedEl = document.getElementById('feedList');
-      feedEl.innerHTML = '';
-      state.entries.slice().reverse().forEach(entry => {
-        const row = document.createElement('div');
-        row.className = 'entry-row';
-        row.innerHTML = `
-          <div class="entry-main">
-            <div class="entry-name">${entry.item}</div>
-            <div class="entry-sub">${entry.protein}P · ${entry.carbs}C · ${entry.fat}F · ${entry.sodium || 0}mg Sodium</div>
-          </div>
-          <div class="entry-cals">${entry.calories}</div>
-        `;
-        feedEl.appendChild(row);
+    // Filter Entries for Current 4 AM Day
+    function getCurrentDayEntries() {
+      const activeDateKey = getOperationalDateKey();
+      return state.entries.filter(e => {
+        if (!e.timestamp) return true;
+        return getOperationalDateKey(new Date(e.timestamp)) === activeDateKey;
       });
     }
 
-    // Modal Drawer Controls
-    const logDrawer = document.getElementById('logDrawer');
-    const profileDrawer = document.getElementById('profileDrawer');
+    // UI Elements
+    const dom = {
+      calsThousands: document.getElementById('calsInThousands'),
+      calsHundreds: document.getElementById('calsInHundreds'),
+      labelRemaining: document.getElementById('labelRemaining'),
+      valProtein: document.getElementById('valProtein'),
+      valCarbs: document.getElementById('valCarbs'),
+      valFat: document.getElementById('valFat'),
+      barProtein: document.getElementById('barProtein'),
+      barCarbs: document.getElementById('barCarbs'),
+      barFat: document.getElementById('barFat'),
+      feedList: document.getElementById('feedList'),
+      logDrawer: document.getElementById('logDrawer'),
+      profileDrawer: document.getElementById('profileDrawer'),
+      btnOpenLog: document.getElementById('btnOpenLog'),
+      btnCloseLog: document.getElementById('btnCloseLog'),
+      btnOpenProfile: document.getElementById('btnOpenProfile'),
+      btnCloseProfile: document.getElementById('btnCloseProfile'),
+      boxAudio: document.getElementById('boxAudio'),
+      boxVision: document.getElementById('boxVision'),
+      cameraInput: document.getElementById('cameraInput'),
+      bufferContent: document.getElementById('bufferContent'),
+      btnEnter: document.getElementById('btnEnter'),
+      btnManualPrompt: document.getElementById('btnManualPrompt'),
+      statusLabel: document.getElementById('statusLabel'),
+      statusDot: document.getElementById('statusDot'),
+      cfgApiKey: document.getElementById('cfgApiKey'),
+      cfgWebhook: document.getElementById('cfgWebhook'),
+      cfgTargetCals: document.getElementById('cfgTargetCals'),
+      cfgTargetProtein: document.getElementById('cfgTargetProtein'),
+      cfgTargetCarbs: document.getElementById('cfgTargetCarbs'),
+      cfgTargetFat: document.getElementById('cfgTargetFat'),
+      btnSaveProfile: document.getElementById('btnSaveProfile')
+    };
 
-    document.getElementById('btnOpenLog').addEventListener('click', () => {
-      resetCaptureBuffer();
-      logDrawer.style.display = 'flex';
-    });
-    document.getElementById('btnCloseLog').addEventListener('click', () => logDrawer.style.display = 'none');
+    // Render Dashboard UI
+    function render() {
+      const todayEntries = getCurrentDayEntries();
+      const totals = todayEntries.reduce((acc, curr) => {
+        acc.cals += (Number(curr.calories) || 0);
+        acc.protein += (Number(curr.protein) || 0);
+        acc.carbs += (Number(curr.carbs) || 0);
+        acc.fat += (Number(curr.fat) || 0);
+        return acc;
+      }, { cals: 0, protein: 0, carbs: 0, fat: 0 });
 
-    document.getElementById('btnOpenProfile').addEventListener('click', () => {
-      document.getElementById('cfgApiKey').value = state.apiKey;
-      document.getElementById('cfgWebhook').value = state.webhookUrl;
-      document.getElementById('cfgGoalCals').value = state.goals.cals;
-      document.getElementById('cfgGoalProtein').value = state.goals.protein;
-      document.getElementById('cfgGoalCarbs').value = state.goals.carbs;
-      document.getElementById('cfgGoalFat').value = state.goals.fat;
-      profileDrawer.style.display = 'flex';
-    });
-    document.getElementById('btnCloseProfile').addEventListener('click', () => profileDrawer.style.display = 'none');
+      // Calorie Display
+      const calsStr = totals.cals.toString();
+      if (totals.cals >= 1000) {
+        dom.calsThousands.textContent = calsStr.slice(0, -3);
+        dom.calsHundreds.textContent = calsStr.slice(-3);
+      } else {
+        dom.calsThousands.textContent = "0";
+        dom.calsHundreds.textContent = calsStr.padStart(3, '0');
+      }
 
-    document.getElementById('btnSaveProfile').addEventListener('click', () => {
-      state.apiKey = document.getElementById('cfgApiKey').value.trim();
-      state.webhookUrl = document.getElementById('cfgWebhook').value.trim();
-      state.goals = {
-        cals: parseInt(document.getElementById('cfgGoalCals').value, 10) || 2000,
-        protein: parseInt(document.getElementById('cfgGoalProtein').value, 10) || 180,
-        carbs: parseInt(document.getElementById('cfgGoalCarbs').value, 10) || 200,
-        fat: parseInt(document.getElementById('cfgGoalFat').value, 10) || 65
-      };
-      localStorage.setItem('mp_apikey', state.apiKey);
-      localStorage.setItem('mp_webhook', state.webhookUrl);
-      localStorage.setItem('mp_goals', JSON.stringify(state.goals));
-      profileDrawer.style.display = 'none';
-      renderMetrics();
-    });
+      const remaining = state.targetCals - totals.cals;
+      dom.labelRemaining.textContent = `${Math.abs(remaining)} ${remaining >= 0 ? 'REMAINING' : 'OVER TARGET'}`;
 
-    // Native Audio Recording (SpeechRecognition fallback)
-    const boxAudio = document.getElementById('boxAudio');
+      // Macro Deck Values
+      dom.valProtein.textContent = Math.round(totals.protein);
+      dom.valCarbs.textContent = Math.round(totals.carbs);
+      dom.valFat.textContent = Math.round(totals.fat);
+
+      // Macro Bars
+      dom.barProtein.style.width = Math.min(100, (totals.protein / state.targetProtein) * 100) + '%';
+      dom.barCarbs.style.width = Math.min(100, (totals.carbs / state.targetCarbs) * 100) + '%';
+      dom.barFat.style.width = Math.min(100, (totals.fat / state.targetFat) * 100) + '%';
+
+      // Feed List
+      dom.feedList.innerHTML = '';
+      if (todayEntries.length === 0) {
+        dom.feedList.innerHTML = `<div style="font-size:12px;color:var(--text-muted);font-weight:600;">No entries recorded yet today.</div>`;
+      } else {
+        todayEntries.slice().reverse().forEach(entry => {
+          const row = document.createElement('div');
+          row.className = 'entry-row';
+          row.innerHTML = `
+            <div class="entry-main">
+              <div class="entry-name">${escapeHtml(entry.item)}</div>
+              <div class="entry-sub">P: ${entry.protein}g · C: ${entry.carbs}g · F: ${entry.fat}g ${entry.sodium ? '· Na: ' + entry.sodium + 'mg' : ''}</div>
+            </div>
+            <div class="entry-cals">${entry.calories}</div>
+          `;
+          dom.feedList.appendChild(row);
+        });
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    // Speech Recognition Audio Module
     let recognition = null;
-
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechConstructor();
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
+      recognition.lang = 'en-US';
 
       recognition.onstart = () => {
         state.isRecording = true;
-        boxAudio.classList.add('recording');
-        document.getElementById('statusLabel').textContent = 'LISTENING...';
+        dom.boxAudio.classList.add('recording');
+        dom.statusLabel.textContent = "LISTENING...";
+        dom.bufferContent.textContent = "Listening to audio stream...";
       };
 
       recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
-          .join('');
-        state.capturedText = transcript;
-        document.getElementById('bufferContent').textContent = `"${transcript}"`;
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        state.currentBufferText = transcript;
+        dom.bufferContent.textContent = `"${transcript}"`;
       };
 
-      recognition.onerror = () => resetCaptureState();
-      recognition.onend = () => resetCaptureState();
+      recognition.onerror = (e) => {
+        console.warn("Speech recognition error:", e);
+        stopAudioRecording();
+      };
+
+      recognition.onend = () => {
+        stopAudioRecording();
+      };
     }
 
-    boxAudio.addEventListener('click', () => {
+    function stopAudioRecording() {
+      state.isRecording = false;
+      dom.boxAudio.classList.remove('recording');
+      dom.statusLabel.textContent = "BUFFER READY // PARSE WITH GEMINI";
+    }
+
+    // Vision Capture Module
+    dom.boxVision.addEventListener('click', () => {
+      dom.cameraInput.click();
+    });
+
+    dom.cameraInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      dom.statusLabel.textContent = "PROCESSING IMAGE...";
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const fullBase64 = evt.target.result;
+        state.currentBase64Image = fullBase64.split(',')[1];
+        state.currentBufferText = "[IMAGE ATTACHED]";
+        dom.bufferContent.textContent = `Scanned photo attached (${file.name || 'image.jpg'}). Ready to parse.`;
+        dom.statusLabel.textContent = "IMAGE STAGED // READY";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Audio Box Trigger
+    dom.boxAudio.addEventListener('click', () => {
       if (!recognition) {
-        manualPromptFallback();
+        alert("Speech Recognition is not supported in this browser. Use the KEYBOARD button.");
         return;
       }
       if (state.isRecording) {
         recognition.stop();
       } else {
-        recognition.start();
+        try {
+          recognition.start();
+        } catch (err) {
+          recognition.stop();
+        }
       }
     });
 
-    function resetCaptureState() {
-      state.isRecording = false;
-      boxAudio.classList.remove('recording');
-      document.getElementById('statusLabel').textContent = 'DIRECT MULTIMODAL FLASH (AUDIO / VISION)';
+    // Fallback Manual Text Prompt
+    dom.btnManualPrompt.addEventListener('click', () => {
+      const input = prompt("Enter food item and portion:", state.currentBufferText);
+      if (input !== null && input.trim() !== "") {
+        state.currentBufferText = input.trim();
+        dom.bufferContent.textContent = `"${state.currentBufferText}"`;
+        dom.statusLabel.textContent = "BUFFER STAGED // READY";
+      }
+    });
+
+    // Gemini 3.5 Flash-Lite API Call
+    async function callGeminiFlash(textQuery, imageBase64) {
+      const cleanKey = (state.apiKey || '').trim();
+      if (!cleanKey) throw new Error("Gemini API Key missing in Profile settings.");
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(cleanKey)}`;
+
+      const systemPrompt = `You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema:
+      {
+        "item": "Clean short name of food",
+        "calories": number,
+        "protein": number,
+        "carbs": number,
+        "fat": number,
+        "sodium": number
+      }
+      Estimate realistically if exact macros are not specified. Return NO markdown code blocks, just raw JSON.`;
+
+      const parts = [];
+      if (imageBase64) {
+        parts.push({
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: imageBase64
+          }
+        });
+      }
+      if (textQuery && textQuery !== "[IMAGE ATTACHED]") {
+        parts.push({ text: textQuery });
+      } else {
+        parts.push({ text: "Parse this nutrition label or meal image." });
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorBody}`);
+      }
+
+      const data = await response.json();
+      const rawText = data.candidates[0].content.parts[0].text;
+      return JSON.parse(rawText);
     }
 
-    // Vision / Camera Capture
-    const boxVision = document.getElementById('boxVision');
-    const cameraInput = document.getElementById('cameraInput');
+    // Google Sheets Webhook Sync
+    function syncToSheets(entry) {
+      const url = (state.webhookUrl || '').trim();
+      if (!url) return;
 
-    boxVision.addEventListener('click', () => cameraInput.click());
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toTimeString().slice(0, 5);
 
-    cameraInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Data = event.target.result.split(',')[1];
-        state.capturedImageBase64 = base64Data;
-        state.capturedText = '';
-        document.getElementById('bufferContent').textContent = `[Image Captured: ${file.name}] Ready for vision parsing.`;
+      const payload = {
+        action: "append_food_log",
+        source: "MacroPulse",
+        timestamp: now.toISOString(),
+        entry: {
+          date: dateStr,
+          time: timeStr,
+          item: entry.item || "Unknown item",
+          portion: "1 serving",
+          calories: Number(entry.calories) || 0,
+          protein: Number(entry.protein) || 0,
+          carbs: Number(entry.carbs) || 0,
+          sugar: Number(entry.sugar) || 0,
+          fat: Number(entry.fat) || 0,
+          sodium: Number(entry.sodium) || 0,
+          logMethod: "MacroPulse"
+        }
       };
-      reader.readAsDataURL(file);
-    });
 
-    // Keyboard Fallback
-    document.getElementById('btnManualPrompt').addEventListener('click', manualPromptFallback);
-
-    function manualPromptFallback() {
-      const input = prompt("Describe food or meal directly:", state.capturedText);
-      if (input !== null) {
-        state.capturedText = input;
-        state.capturedImageBase64 = null;
-        document.getElementById('bufferContent').textContent = `"${input}"`;
-      }
+      fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      }).catch(function(err) {
+        console.warn("Background Sheets sync error:", err);
+      });
     }
 
-    function resetCaptureBuffer() {
-      state.capturedImageBase64 = null;
-      state.capturedText = '';
-      document.getElementById('bufferContent').textContent = 'Tap an icon to capture audio or scan...';
-      document.getElementById('statusLabel').textContent = 'DIRECT MULTIMODAL FLASH (AUDIO / VISION)';
-      document.getElementById('btnEnter').disabled = false;
-      document.getElementById('btnEnter').textContent = 'ENTER';
-    }
+    // Enter Button Execution
+    dom.btnEnter.addEventListener('click', async () => {
+      const text = state.currentBufferText;
+      const img = state.currentBase64Image;
 
-    // Enter & Direct Gemini Flash Parse
-    document.getElementById('btnEnter').addEventListener('click', async () => {
-      if (!state.capturedText && !state.capturedImageBase64) {
-        alert("Please speak or take a photo first.");
+      if (!text && !img) {
+        alert("Capture audio, take a photo, or use KEYBOARD first.");
         return;
       }
 
-      const btn = document.getElementById('btnEnter');
-      btn.disabled = true;
-      btn.textContent = 'PARSING...';
+      dom.btnEnter.disabled = true;
+      dom.statusLabel.textContent = "PARSING STREAM...";
 
       try {
-        const parsedItem = await callGeminiFlash(state.capturedText, state.capturedImageBase64);
+        const parsed = await callGeminiFlash(text, img);
         
-        // Optimistic UI updates
-        state.entries.push(parsedItem);
-        persistEntries();
-        renderMetrics();
-        renderFeed();
-
-        // Dismiss drawer
-        logDrawer.style.display = 'none';
-
-        // Fire-and-forget background sync
-        syncToSheets(parsedItem);
-
-      } catch (err) {
-        alert("Failed to parse: " + err.message);0
-        btn.disabled = false;
-        btn.textContent = 'ENTER';
-      }
-    });
-
-    // Client-Side Gemini Flash Parsing
-async function callGeminiFlash(textQuery, imageBase64) {
-  const cleanKey = (state.apiKey || '').trim();
-  if (!cleanKey) throw new Error("Gemini API Key missing in Profile settings.");
-
-  // Direct endpoint using the live gemini-3.8-flash model
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
-
-  const systemPrompt = `You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema:
-  {
-    "item": "Clean short name of food",
-    "calories": number,
-    "protein": number,
-    "carbs": number,
-    "fat": number,
-    "sodium": number
-  }
-  Estimate realistically if exact macros are not specified. Return NO markdown code blocks, just raw JSON.`;
-
-  const parts = [];
-  if (imageBase64) {
-    parts.push({
-      inlineData: {
-        mimeType: "image/jpeg",
-        data: imageBase64
-      }
-    });
-  }
-  if (textQuery) {
-    parts.push({ text: textQuery });
-  } else {
-    parts.push({ text: "Parse this nutrition label or meal image." });
-  }
-
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: { responseMimeType: "application/json" }
-    })
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`HTTP ${response.status}: ${errorBody}`);
-  }
-
-  const data = await response.json();
-  const rawText = data.candidates[0].content.parts[0].text;
-  return JSON.parse(rawText);
-}
-
-// Fire-and-Forget Google Sheets Sync
-function syncToSheets(entry) {
-  const url = (state.webhookUrl || '').trim();
-  if (!url) return;
-
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const timeStr = now.toTimeString().slice(0, 5);
-
-  const payload = {
-    action: "append_food_log",
-    source: "MacroPulse",
-    timestamp: now.toISOString(),
-    entry: {
-      date: dateStr,
-      time: timeStr,
-      item: entry.item || "Unknown item",
-      portion: "1 serving",
-      calories: Number(entry.calories) || 0,
-      protein: Number(entry.protein) || 0,
-      carbs: Number(entry.carbs) || 0,
-      sugar: Number(entry.sugar) || 0,
-      fat: Number(entry.fat) || 0,
-      sodium: Number(entry.sodium) || 0,
-      logMethod: "MacroPulse"
-    }
-  };
-
-  fetch(url, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
-  }).catch(() => {});
-}
-  };
-
-  fetch(state.webhookUrl, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
-  }).then(() => {
-    console.log("Sync dispatched to Apps Script");
-  }).catch(err => console.warn('Background sync deferred:', err));
-}
-    // Initialize
-    loadPersistedData();
-  </script>
-</body>
-</html>
+        const newEntry = {
+          item: parsed.item || "Logged Food",
+          calories: Number(parsed.calories) || 0,
+          protein: Number(parsed.protein) || 0,
