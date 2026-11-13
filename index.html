@@ -134,7 +134,6 @@
 
   <input type="file" id="cameraInput" accept="image/*" style="display:none;" onchange="handleCameraInput(event)">
 
-  <!-- Audio-Visual Entry Drawer -->
   <div class="drawer-overlay" id="logDrawer">
     <div class="drawer-content">
       <div class="drawer-header">
@@ -179,7 +178,6 @@
     </div>
   </div>
 
-  <!-- Profile / Config Drawer -->
   <div class="drawer-overlay" id="profileDrawer">
     <div class="drawer-content">
       <div class="drawer-header">
@@ -222,7 +220,7 @@
   </div>
 
   <script>
-    const state = {
+    var state = {
       entries: [],
       capturedImageBase64: null,
       capturedImageMime: 'image/jpeg',
@@ -234,26 +232,26 @@
     };
 
     function formatLocalYYYYMMDD(d) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
+      var year = d.getFullYear();
+      var month = String(d.getMonth() + 1).padStart(2, '0');
+      var day = String(d.getDate()).padStart(2, '0');
       return year + '-' + month + '-' + day;
     }
 
     function formatLocalHHMM(d) {
-      const hours = String(d.getHours()).padStart(2, '0');
-      const mins = String(d.getMinutes()).padStart(2, '0');
+      var hours = String(d.getHours()).padStart(2, '0');
+      var mins = String(d.getMinutes()).padStart(2, '0');
       return hours + ':' + mins;
     }
 
     function getOperationalDayKey() {
-      const now = new Date();
-      const shifted = new Date(now.getTime() - (4 * 60 * 60 * 1000));
+      var now = new Date();
+      var shifted = new Date(now.getTime() - (4 * 60 * 60 * 1000));
       return formatLocalYYYYMMDD(shifted);
     }
 
     function escapeHtml(str) {
-      const div = document.createElement('div');
+      var div = document.createElement('div');
       div.textContent = str || '';
       return div.innerHTML;
     }
@@ -303,7 +301,7 @@
 
     function loadPersistedData() {
       try {
-        const savedGoals = JSON.parse(localStorage.getItem('mp_goals') || 'null');
+        var savedGoals = JSON.parse(localStorage.getItem('mp_goals') || 'null');
         if (savedGoals && typeof savedGoals === 'object') {
           state.goals = {
             cals: Number(savedGoals.cals) || 2000,
@@ -319,10 +317,10 @@
         state.webhookUrl = localStorage.getItem('mp_webhook') || localStorage.getItem('mp_webhook_url') || '';
       } catch (e) {}
 
-      const dayKey = getOperationalDayKey();
+      var dayKey = getOperationalDayKey();
       try {
-        const raw = localStorage.getItem('mp_entries_' + dayKey);
-        const parsed = raw ? JSON.parse(raw) : null;
+        var raw = localStorage.getItem('mp_entries_' + dayKey);
+        var parsed = raw ? JSON.parse(raw) : null;
         state.entries = Array.isArray(parsed) ? parsed : [];
       } catch (e) {
         state.entries = [];
@@ -334,14 +332,14 @@
 
     function persistEntries() {
       try {
-        const dayKey = getOperationalDayKey();
+        var dayKey = getOperationalDayKey();
         localStorage.setItem('mp_entries_' + dayKey, JSON.stringify(state.entries));
       } catch (e) {}
     }
 
     function renderMetrics() {
       if (!Array.isArray(state.entries)) state.entries = [];
-      const totals = state.entries.reduce((acc, cur) => {
+      var totals = state.entries.reduce(function(acc, cur) {
         if (!cur) return acc;
         acc.cals += Number(cur.calories) || 0;
         acc.protein += Number(cur.protein) || 0;
@@ -350,9 +348,9 @@
         return acc;
       }, { cals: 0, protein: 0, carbs: 0, fat: 0 });
 
-      const calsVal = Math.round(totals.cals);
+      var calsVal = Math.round(totals.cals);
       if (calsVal >= 1000) {
-        const calsStr = calsVal.toString();
+        var calsStr = calsVal.toString();
         document.getElementById('calsInThousands').textContent = calsStr.slice(0, -3);
         document.getElementById('calsInHundreds').textContent = calsStr.slice(-3);
       } else {
@@ -360,13 +358,241 @@
         document.getElementById('calsInHundreds').textContent = calsVal.toString().padStart(3, '0');
       }
 
-      const goalCals = (state.goals && state.goals.cals) ? state.goals.cals : 2000;
-      const remaining = goalCals - calsVal;
+      var goalCals = (state.goals && state.goals.cals) ? state.goals.cals : 2000;
+      var remaining = goalCals - calsVal;
       document.getElementById('labelRemaining').textContent = Math.abs(remaining) + (remaining >= 0 ? ' REMAINING' : ' OVER TARGET');
 
       document.getElementById('valProtein').textContent = Math.round(totals.protein);
       document.getElementById('valCarbs').textContent = Math.round(totals.carbs);
       document.getElementById('valFat').textContent = Math.round(totals.fat);
 
-      const pPct = Math.min(100, Math.round((totals.protein / ((state.goals && state.goals.protein) || 180)) * 100));
-      const cPct = Math.min(
+      var pPct = Math.min(100, Math.round((totals.protein / ((state.goals && state.goals.protein) || 180)) * 100));
+      var cPct = Math.min(100, Math.round((totals.carbs / ((state.goals && state.goals.carbs) || 200)) * 100));
+      var fPct = Math.min(100, Math.round((totals.fat / ((state.goals && state.goals.fat) || 65)) * 100));
+
+      document.getElementById('barProtein').style.width = pPct + '%';
+      document.getElementById('barCarbs').style.width = cPct + '%';
+      document.getElementById('barFat').style.width = fPct + '%';
+    }
+
+    function renderFeed() {
+      var feedEl = document.getElementById('feedList');
+      feedEl.innerHTML = '';
+      if (!Array.isArray(state.entries) || state.entries.length === 0) {
+        feedEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-weight:600;">No entries recorded yet today.</div>';
+        return;
+      }
+      state.entries.slice().reverse().forEach(function(entry) {
+        if (!entry) return;
+        var row = document.createElement('div');
+        row.className = 'entry-row';
+        row.innerHTML = 
+          '<div class="entry-main">' +
+            '<div class="entry-name">' + escapeHtml(entry.item || 'Food Item') + '</div>' +
+            '<div class="entry-sub">' + (Number(entry.protein) || 0) + 'P · ' + (Number(entry.carbs) || 0) + 'C · ' + (Number(entry.fat) || 0) + 'F · ' + (Number(entry.sodium) || 0) + 'mg Sodium</div>' +
+          '</div>' +
+          '<div class="entry-cals">' + (Number(entry.calories) || 0) + '</div>';
+        feedEl.appendChild(row);
+      });
+    }
+
+    var recognition = null;
+    try {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        var SpeechConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechConstructor();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function() {
+          state.isRecording = true;
+          document.getElementById('boxAudio').classList.add('recording');
+          document.getElementById('statusLabel').textContent = 'LISTENING...';
+        };
+
+        recognition.onresult = function(event) {
+          var transcript = Array.from(event.results)
+            .map(function(result) { return result[0].transcript; })
+            .join('');
+          state.capturedText = transcript;
+          document.getElementById('bufferContent').textContent = '"' + transcript + '"';
+        };
+
+        recognition.onerror = function() { resetCaptureState(); };
+        recognition.onend = function() { resetCaptureState(); };
+      }
+    } catch (e) {}
+
+    function handleAudioClick() {
+      if (!recognition) {
+        manualPromptFallback();
+        return;
+      }
+      if (state.isRecording) {
+        try { recognition.stop(); } catch (e) {}
+      } else {
+        try { recognition.start(); } catch (e) { manualPromptFallback(); }
+      }
+    }
+
+    function resetCaptureState() {
+      state.isRecording = false;
+      document.getElementById('boxAudio').classList.remove('recording');
+      document.getElementById('statusLabel').textContent = 'READY // GEMINI 3.5 FLASH-LITE';
+    }
+
+    function handleCameraInput(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      state.capturedImageMime = file.type || 'image/jpeg';
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var base64Data = event.target.result.split(',')[1];
+        state.capturedImageBase64 = base64Data;
+        state.capturedText = '';
+        document.getElementById('bufferContent').textContent = '[Image Captured: ' + file.name + '] Ready for vision parsing.';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function manualPromptFallback() {
+      var input = prompt("Describe food or meal directly:", state.capturedText);
+      if (input !== null && input.trim() !== "") {
+        state.capturedText = input.trim();
+        state.capturedImageBase64 = null;
+        document.getElementById('bufferContent').textContent = '"' + input.trim() + '"';
+      }
+    }
+
+    function resetCaptureBuffer() {
+      state.capturedImageBase64 = null;
+      state.capturedImageMime = 'image/jpeg';
+      state.capturedText = '';
+      document.getElementById('bufferContent').textContent = 'Tap an icon to capture audio or scan...';
+      document.getElementById('statusLabel').textContent = 'READY // GEMINI 3.5 FLASH-LITE';
+      var btn = document.getElementById('btnEnter');
+      btn.disabled = false;
+      btn.textContent = 'ENTER';
+      document.getElementById('cameraInput').value = '';
+    }
+
+    async function submitEntry() {
+      if (!state.capturedText && !state.capturedImageBase64) {
+        alert("Please speak, take a photo, or tap KEYBOARD first.");
+        return;
+      }
+
+      var btn = document.getElementById('btnEnter');
+      btn.disabled = true;
+      btn.textContent = 'PARSING...';
+
+      try {
+        var parsedItem = await callGeminiFlash(state.capturedText, state.capturedImageBase64, state.capturedImageMime);
+        state.entries.push(parsedItem);
+        persistEntries();
+        renderMetrics();
+        renderFeed();
+        closeLogDrawer();
+        syncToSheets(parsedItem);
+      } catch (err) {
+        alert("Failed to parse: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ENTER';
+      }
+    }
+
+    async function callGeminiFlash(textQuery, imageBase64, imageMime) {
+      var cleanKey = (state.apiKey || '').trim();
+      if (!cleanKey) throw new Error("Gemini API Key missing in Profile settings.");
+
+      var endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=' + encodeURIComponent(cleanKey);
+
+      var systemPrompt = 'You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema: {"item": "Clean short name of food", "calories": number, "protein": number, "carbs": number, "sugar": number, "fat": number, "sodium": number}. Estimate realistically if exact macros are not specified. Return NO markdown code blocks, just raw JSON.';
+
+      var parts = [];
+      if (imageBase64) {
+        parts.push({
+          inlineData: {
+            mimeType: imageMime || 'image/jpeg',
+            data: imageBase64
+          }
+        });
+      }
+      if (textQuery) {
+        parts.push({ text: textQuery });
+      } else {
+        parts.push({ text: "Parse this nutrition label or meal image." });
+      }
+
+      var response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: parts }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      if (!response.ok) {
+        var errorBody = await response.text();
+        throw new Error('HTTP ' + response.status + ': ' + errorBody);
+      }
+
+      var data = await response.json();
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts[0]) {
+        throw new Error("Empty response from Gemini API.");
+      }
+
+      var rawText = data.candidates[0].content.parts[0].text.trim();
+      rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
+      return JSON.parse(rawText);
+    }
+
+    function syncToSheets(entry) {
+      var url = (state.webhookUrl || '').trim();
+      if (!url) {
+        alert("SYNC ABORTED: No Webhook URL saved in Profile!");
+        return;
+      }
+
+      var now = new Date();
+      var operationalDateStr = getOperationalDayKey();
+      var localTimeStr = formatLocalHHMM(now);
+
+      var payload = {
+        action: "append_food_log",
+        source: "MacroPulse",
+        timestamp: now.toISOString(),
+        entry: {
+          date: operationalDateStr,
+          time: localTimeStr,
+          item: entry.item || "Unknown item",
+          portion: "1 serving",
+          calories: Number(entry.calories) || 0,
+          protein: Number(entry.protein) || 0,
+          carbs: Number(entry.carbs) || 0,
+          sugar: Number(entry.sugar) || 0,
+          fat: Number(entry.fat) || 0,
+          sodium: Number(entry.sodium) || 0,
+          logMethod: "MacroPulse"
+        }
+      };
+
+      fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      .then(function() { alert("Packet sent to: " + url.slice(-15)); })
+      .catch(function(err) { alert("NETWORK BLOCKED: " + err.message); });
+    }
+
+    loadPersistedData();
+  </script>
+</body>
+</html>
