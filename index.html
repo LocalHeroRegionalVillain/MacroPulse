@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MacroPulse v5.3</title>
+  <title>MacroPulse v5.4</title>
   <style>
     :root {
       --bg: #0c0c0c;
@@ -34,7 +34,7 @@
 
     .hero-calorie-block { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 30px; }
     .hero-number { font-size: 50px; font-weight: 900; letter-spacing: -1.5px; line-height: 0.85; display: flex; align-items: baseline; }
-    .hero-comma { margin-left: -5px; margin-right: 4px; }
+    .hero-comma { margin-left: -1px; margin-right: 2px; }
     .hero-meta { display: flex; flex-direction: column; justify-content: space-between; height: 42px; }
     .label-calories-in { font-size: 10px; font-weight: 800; letter-spacing: 1.2px; color: var(--text-muted); line-height: 1; }
     .label-calories-remaining { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: var(--accent); line-height: 1; }
@@ -51,17 +51,20 @@
 
     .feed-header { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 14px; }
     .feed-list { display: flex; flex-direction: column; gap: 20px; }
-    .entry-row { display: flex; justify-content: space-between; align-items: flex-start; }
-    .entry-main { display: flex; flex-direction: column; gap: 4px; }
+    .entry-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .entry-main { display: flex; flex-direction: column; gap: 4px; flex: 1; }
     .entry-name { font-size: 14px; font-weight: 700; color: var(--text-main); }
     .entry-sub { font-size: 11px; font-weight: 500; color: var(--text-muted); }
+    .entry-right { display: flex; align-items: center; gap: 12px; }
     .entry-cals { font-size: 15px; font-weight: 900; color: var(--text-main); }
+    .btn-delete-entry { background: none; border: none; color: var(--text-muted); font-size: 16px; font-weight: 700; cursor: pointer; padding: 4px 6px; line-height: 1; }
+    .btn-delete-entry:active { color: var(--accent); }
 
     .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); padding: 16px 20px 24px 20px; z-index: 50; }
     .btn-log-trigger { width: 100%; height: 50px; background: var(--accent); border: none; color: var(--text-main); font-size: 12px; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
 
     .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.82); display: none; flex-direction: column; justify-content: flex-end; z-index: 100; }
-    .drawer-content { background: var(--bg); border-top: 2px solid var(--accent); padding: 24px 20px 32px 20px; display: flex; flex-direction: column; gap: 16px; }
+    .drawer-content { background: var(--bg); border-top: 2px solid var(--accent); padding: 24px 20px 32px 20px; display: flex; flex-direction: column; gap: 14px; max-height: 90vh; overflow-y: auto; }
     .drawer-header { display: flex; justify-content: space-between; align-items: center; }
     .drawer-title { font-size: 13px; font-weight: 900; letter-spacing: 1.5px; }
     .drawer-close { background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; cursor: pointer; padding: 8px; }
@@ -80,19 +83,22 @@
     .status-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
     .btn-text-fallback { background: none; border: none; color: var(--text-muted); font-size: 9px; font-weight: 800; letter-spacing: 0.5px; cursor: pointer; padding: 6px; }
 
-    .btn-enter { width: 100%; height: 50px; background: var(--accent); border: none; color: var(--text-main); font-size: 12px; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
+    .btn-enter { width: 100%; height: 50px; background: var(--accent); border: none; color: var(--text-main); font-size: 12px; font-weight: 900; letter-spacing: 2px; cursor: pointer; flex-shrink: 0; }
     .btn-enter:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .settings-input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-    .settings-label { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; }
-    .settings-input { background: var(--card-bg); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 10px 12px; font-size: 14px; font-weight: 600; outline: none; }
-    .settings-input:focus { border-color: var(--accent); }
+    .settings-section-divider { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--accent); border-bottom: 1px solid var(--border-subtle); padding-bottom: 6px; margin-top: 4px; }
+    .settings-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .settings-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .settings-input-group { display: flex; flex-direction: column; gap: 6px; }
+    .settings-label { font-size: 9px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; }
+    .settings-input, .settings-select { background: var(--card-bg); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 10px 12px; font-size: 14px; font-weight: 600; outline: none; width: 100%; }
+    .settings-input:focus, .settings-select:focus { border-color: var(--accent); }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.3</span></div>
+    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.4</span></div>
     <button type="button" class="btn-profile-trigger" onclick="openProfileDrawer()">PROFILE</button>
   </header>
   <div class="crimson-line"></div>
@@ -185,6 +191,60 @@
         <button type="button" class="drawer-close" onclick="closeProfileDrawer()">ESC</button>
       </div>
 
+      <div class="settings-section-divider">BIOMETRICS &amp; GOAL ONBOARDING</div>
+
+      <div class="settings-row-3">
+        <div class="settings-input-group">
+          <label class="settings-label">HEIGHT (FT)</label>
+          <input type="number" class="settings-input" id="cfgHeightFt" placeholder="5" oninput="recalculateGoalsFromBio()">
+        </div>
+        <div class="settings-input-group">
+          <label class="settings-label">HEIGHT (IN)</label>
+          <input type="number" class="settings-input" id="cfgHeightIn" placeholder="10" oninput="recalculateGoalsFromBio()">
+        </div>
+        <div class="settings-input-group">
+          <label class="settings-label">WEIGHT (LBS)</label>
+          <input type="number" class="settings-input" id="cfgWeightLbs" placeholder="185" oninput="recalculateGoalsFromBio()">
+        </div>
+      </div>
+
+      <div class="settings-input-group">
+        <label class="settings-label">GOAL MODE (AUTO-CALCULATES TARGETS)</label>
+        <select class="settings-select" id="cfgGoalMode" onchange="recalculateGoalsFromBio()">
+          <option value="custom">Custom / Manual Targets</option>
+          <option value="cut">Cut (-500 kcal Deficit)</option>
+          <option value="recomp">Recomp (-250 kcal Mild Deficit)</option>
+          <option value="maintain">Maintain (TDEE Balance)</option>
+          <option value="bulk">Lean Bulk (+300 kcal Surplus)</option>
+        </select>
+      </div>
+
+      <div class="settings-section-divider">DAILY MACRO TARGETS</div>
+
+      <div class="settings-row-2">
+        <div class="settings-input-group">
+          <label class="settings-label">TARGET CALORIES</label>
+          <input type="number" class="settings-input" id="cfgGoalCals" value="2000">
+        </div>
+        <div class="settings-input-group">
+          <label class="settings-label">TARGET PROTEIN (G)</label>
+          <input type="number" class="settings-input" id="cfgGoalProtein" value="180">
+        </div>
+      </div>
+
+      <div class="settings-row-2">
+        <div class="settings-input-group">
+          <label class="settings-label">TARGET CARBS (G)</label>
+          <input type="number" class="settings-input" id="cfgGoalCarbs" value="200">
+        </div>
+        <div class="settings-input-group">
+          <label class="settings-label">TARGET FAT (G)</label>
+          <input type="number" class="settings-input" id="cfgGoalFat" value="65">
+        </div>
+      </div>
+
+      <div class="settings-section-divider">API &amp; CLOUD SYNC</div>
+
       <div class="settings-input-group">
         <label class="settings-label">GEMINI API KEY</label>
         <input type="password" class="settings-input" id="cfgApiKey" placeholder="AIzaSy...">
@@ -193,26 +253,6 @@
       <div class="settings-input-group">
         <label class="settings-label">GOOGLE APPS SCRIPT WEBHOOK URL</label>
         <input type="text" class="settings-input" id="cfgWebhook" value="https://script.google.com/macros/s/AKfycbyjSXdWMmWtw_nWSp6nMwcpMd6K_4v5c-_F_hQZ_tsGag1UulneiAqP56AUwfmCCa96/exec">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET CALORIES</label>
-        <input type="number" class="settings-input" id="cfgGoalCals" value="2000">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET PROTEIN (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalProtein" value="180">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET CARBS (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalCarbs" value="200">
-      </div>
-
-      <div class="settings-input-group">
-        <label class="settings-label">TARGET FAT (G)</label>
-        <input type="number" class="settings-input" id="cfgGoalFat" value="65">
       </div>
 
       <button type="button" class="btn-enter" onclick="saveProfileSettings()">SAVE SETTINGS</button>
@@ -228,6 +268,7 @@
       capturedImageMime: 'image/jpeg',
       capturedText: '',
       isRecording: false,
+      bio: { heightFt: '', heightIn: '', weightLbs: '', goalMode: 'custom' },
       goals: { cals: 2000, protein: 180, carbs: 200, fat: 65 },
       apiKey: '',
       webhookUrl: DEFAULT_WEBHOOK
@@ -267,7 +308,49 @@
       document.getElementById('logDrawer').style.display = 'none';
     }
 
+    function recalculateGoalsFromBio() {
+      var mode = document.getElementById('cfgGoalMode').value;
+      if (mode === 'custom') return;
+
+      var ft = parseFloat(document.getElementById('cfgHeightFt').value) || 0;
+      var inches = parseFloat(document.getElementById('cfgHeightIn').value) || 0;
+      var lbs = parseFloat(document.getElementById('cfgWeightLbs').value) || 0;
+
+      if (lbs <= 0) return;
+
+      var totalInches = (ft > 0) ? (ft * 12 + inches) : 70;
+      var weightKg = lbs * 0.453592;
+      var heightCm = totalInches * 2.54;
+
+      // Mifflin-St Jeor baseline with moderate active multiplier (1.45)
+      var bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * 40) + 5;
+      var tdee = Math.round(bmr * 1.45);
+
+      var targetCals = tdee;
+      if (mode === 'cut') targetCals = tdee - 500;
+      else if (mode === 'recomp') targetCals = tdee - 250;
+      else if (mode === 'bulk') targetCals = tdee + 300;
+
+      targetCals = Math.max(1400, Math.round(targetCals / 10) * 10);
+
+      // 1g protein per lb bodyweight; 25% of calories from fat; remainder carbs
+      var targetProtein = Math.round(lbs * 1.0);
+      var targetFat = Math.round((targetCals * 0.25) / 9);
+      var remainingCals = Math.max(0, targetCals - (targetProtein * 4) - (targetFat * 9));
+      var targetCarbs = Math.round(remainingCals / 4);
+
+      document.getElementById('cfgGoalCals').value = targetCals;
+      document.getElementById('cfgGoalProtein').value = targetProtein;
+      document.getElementById('cfgGoalCarbs').value = targetCarbs;
+      document.getElementById('cfgGoalFat').value = targetFat;
+    }
+
     function openProfileDrawer() {
+      document.getElementById('cfgHeightFt').value = state.bio.heightFt || '';
+      document.getElementById('cfgHeightIn').value = state.bio.heightIn || '';
+      document.getElementById('cfgWeightLbs').value = state.bio.weightLbs || '';
+      document.getElementById('cfgGoalMode').value = state.bio.goalMode || 'custom';
+
       document.getElementById('cfgApiKey').value = state.apiKey || '';
       document.getElementById('cfgWebhook').value = state.webhookUrl || DEFAULT_WEBHOOK;
       document.getElementById('cfgGoalCals').value = (state.goals && state.goals.cals) ? state.goals.cals : 2000;
@@ -282,6 +365,12 @@
     }
 
     function saveProfileSettings() {
+      state.bio = {
+        heightFt: document.getElementById('cfgHeightFt').value.trim(),
+        heightIn: document.getElementById('cfgHeightIn').value.trim(),
+        weightLbs: document.getElementById('cfgWeightLbs').value.trim(),
+        goalMode: document.getElementById('cfgGoalMode').value
+      };
       state.apiKey = document.getElementById('cfgApiKey').value.trim();
       var enteredHook = document.getElementById('cfgWebhook').value.trim();
       state.webhookUrl = enteredHook || DEFAULT_WEBHOOK;
@@ -292,6 +381,7 @@
         fat: parseInt(document.getElementById('cfgGoalFat').value, 10) || 65
       };
       try {
+        localStorage.setItem('mp_bio', JSON.stringify(state.bio));
         localStorage.setItem('mp_apikey', state.apiKey);
         localStorage.setItem('mp_api_key', state.apiKey);
         localStorage.setItem('mp_webhook', state.webhookUrl);
@@ -303,6 +393,18 @@
     }
 
     function loadPersistedData() {
+      try {
+        var savedBio = JSON.parse(localStorage.getItem('mp_bio') || 'null');
+        if (savedBio && typeof savedBio === 'object') {
+          state.bio = {
+            heightFt: savedBio.heightFt || '',
+            heightIn: savedBio.heightIn || '',
+            weightLbs: savedBio.weightLbs || '',
+            goalMode: savedBio.goalMode || 'custom'
+          };
+        }
+      } catch (e) {}
+
       try {
         var savedGoals = JSON.parse(localStorage.getItem('mp_goals') || 'null');
         if (savedGoals && typeof savedGoals === 'object') {
@@ -341,6 +443,14 @@
         var dayKey = getOperationalDayKey();
         localStorage.setItem('mp_entries_' + dayKey, JSON.stringify(state.entries));
       } catch (e) {}
+    }
+
+    function deleteEntry(originalIndex) {
+      if (originalIndex < 0 || originalIndex >= state.entries.length) return;
+      state.entries.splice(originalIndex, 1);
+      persistEntries();
+      renderMetrics();
+      renderFeed();
     }
 
     function renderMetrics() {
@@ -388,8 +498,9 @@
         feedEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-weight:600;">No entries recorded yet today.</div>';
         return;
       }
-      state.entries.slice().reverse().forEach(function(entry) {
-        if (!entry) return;
+      for (var i = state.entries.length - 1; i >= 0; i--) {
+        var entry = state.entries[i];
+        if (!entry) continue;
         var row = document.createElement('div');
         row.className = 'entry-row';
         row.innerHTML = 
@@ -397,9 +508,12 @@
             '<div class="entry-name">' + escapeHtml(entry.item || 'Food Item') + '</div>' +
             '<div class="entry-sub">' + (Number(entry.protein) || 0) + 'P · ' + (Number(entry.carbs) || 0) + 'C · ' + (Number(entry.fat) || 0) + 'F · ' + (Number(entry.sodium) || 0) + 'mg Sodium</div>' +
           '</div>' +
-          '<div class="entry-cals">' + (Number(entry.calories) || 0) + '</div>';
+          '<div class="entry-right">' +
+            '<div class="entry-cals">' + (Number(entry.calories) || 0) + '</div>' +
+            '<button type="button" class="btn-delete-entry" onclick="deleteEntry(' + i + ')" aria-label="Delete entry">&times;</button>' +
+          '</div>';
         feedEl.appendChild(row);
-      });
+      }
     }
 
     var recognition = null;
@@ -591,9 +705,7 @@
         redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
-      })
-      .then(function() { alert("Packet sent to: " + url.slice(-15)); })
-      .catch(function(err) { alert("NETWORK BLOCKED: " + err.message); });
+      }).catch(function(err) { console.warn('Background sync deferred:', err); });
     }
 
     loadPersistedData();
