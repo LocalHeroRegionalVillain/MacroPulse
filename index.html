@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MacroPulse v5.2</title>
+  <title>MacroPulse v5.3</title>
   <style>
     :root {
       --bg: #0c0c0c;
@@ -92,7 +92,7 @@
 <body>
 
   <header>
-    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.2</span></div>
+    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.3</span></div>
     <button type="button" class="btn-profile-trigger" onclick="openProfileDrawer()">PROFILE</button>
   </header>
   <div class="crimson-line"></div>
@@ -192,7 +192,7 @@
 
       <div class="settings-input-group">
         <label class="settings-label">GOOGLE APPS SCRIPT WEBHOOK URL</label>
-        <input type="text" class="settings-input" id="cfgWebhook" placeholder="https://script.google.com/.../exec">
+        <input type="text" class="settings-input" id="cfgWebhook" value="https://script.google.com/macros/s/AKfycbyjSXdWMmWtw_nWSp6nMwcpMd6K_4v5c-_F_hQZ_tsGag1UulneiAqP56AUwfmCCa96/exec">
       </div>
 
       <div class="settings-input-group">
@@ -220,6 +220,8 @@
   </div>
 
   <script>
+    var DEFAULT_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyjSXdWMmWtw_nWSp6nMwcpMd6K_4v5c-_F_hQZ_tsGag1UulneiAqP56AUwfmCCa96/exec';
+
     var state = {
       entries: [],
       capturedImageBase64: null,
@@ -228,7 +230,7 @@
       isRecording: false,
       goals: { cals: 2000, protein: 180, carbs: 200, fat: 65 },
       apiKey: '',
-      webhookUrl: ''
+      webhookUrl: DEFAULT_WEBHOOK
     };
 
     function formatLocalYYYYMMDD(d) {
@@ -267,7 +269,7 @@
 
     function openProfileDrawer() {
       document.getElementById('cfgApiKey').value = state.apiKey || '';
-      document.getElementById('cfgWebhook').value = state.webhookUrl || '';
+      document.getElementById('cfgWebhook').value = state.webhookUrl || DEFAULT_WEBHOOK;
       document.getElementById('cfgGoalCals').value = (state.goals && state.goals.cals) ? state.goals.cals : 2000;
       document.getElementById('cfgGoalProtein').value = (state.goals && state.goals.protein) ? state.goals.protein : 180;
       document.getElementById('cfgGoalCarbs').value = (state.goals && state.goals.carbs) ? state.goals.carbs : 200;
@@ -281,7 +283,8 @@
 
     function saveProfileSettings() {
       state.apiKey = document.getElementById('cfgApiKey').value.trim();
-      state.webhookUrl = document.getElementById('cfgWebhook').value.trim();
+      var enteredHook = document.getElementById('cfgWebhook').value.trim();
+      state.webhookUrl = enteredHook || DEFAULT_WEBHOOK;
       state.goals = {
         cals: parseInt(document.getElementById('cfgGoalCals').value, 10) || 2000,
         protein: parseInt(document.getElementById('cfgGoalProtein').value, 10) || 180,
@@ -314,8 +317,11 @@
 
       try {
         state.apiKey = localStorage.getItem('mp_apikey') || localStorage.getItem('mp_api_key') || '';
-        state.webhookUrl = localStorage.getItem('mp_webhook') || localStorage.getItem('mp_webhook_url') || '';
-      } catch (e) {}
+        var storedHook = localStorage.getItem('mp_webhook') || localStorage.getItem('mp_webhook_url') || '';
+        state.webhookUrl = storedHook.trim() || DEFAULT_WEBHOOK;
+      } catch (e) {
+        state.webhookUrl = DEFAULT_WEBHOOK;
+      }
 
       var dayKey = getOperationalDayKey();
       try {
@@ -552,11 +558,9 @@
     }
 
     function syncToSheets(entry) {
-      var url = (state.webhookUrl || '').trim();
-      if (!url) {
-        alert("SYNC ABORTED: No Webhook URL saved in Profile!");
-        return;
-      }
+      var domInput = document.getElementById('cfgWebhook');
+      var domUrl = domInput ? domInput.value.trim() : '';
+      var url = (state.webhookUrl || domUrl || DEFAULT_WEBHOOK).trim();
 
       var now = new Date();
       var operationalDateStr = getOperationalDayKey();
