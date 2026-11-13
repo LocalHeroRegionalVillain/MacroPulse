@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MacroPulse v5.4</title>
+  <title>MacroPulse v5.5</title>
   <style>
     :root {
       --bg: #0c0c0c;
@@ -98,7 +98,7 @@
 <body>
 
   <header>
-    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.4</span></div>
+    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.5</span></div>
     <button type="button" class="btn-profile-trigger" onclick="openProfileDrawer()">PROFILE</button>
   </header>
   <div class="crimson-line"></div>
@@ -322,7 +322,6 @@
       var weightKg = lbs * 0.453592;
       var heightCm = totalInches * 2.54;
 
-      // Mifflin-St Jeor baseline with moderate active multiplier (1.45)
       var bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * 40) + 5;
       var tdee = Math.round(bmr * 1.45);
 
@@ -333,7 +332,6 @@
 
       targetCals = Math.max(1400, Math.round(targetCals / 10) * 10);
 
-      // 1g protein per lb bodyweight; 25% of calories from fat; remainder carbs
       var targetProtein = Math.round(lbs * 1.0);
       var targetFat = Math.round((targetCals * 0.25) / 9);
       var remainingCals = Math.max(0, targetCals - (targetProtein * 4) - (targetFat * 9));
@@ -447,10 +445,13 @@
 
     function deleteEntry(originalIndex) {
       if (originalIndex < 0 || originalIndex >= state.entries.length) return;
-      state.entries.splice(originalIndex, 1);
+      var removed = state.entries.splice(originalIndex, 1)[0];
       persistEntries();
       renderMetrics();
       renderFeed();
+      if (removed) {
+        deleteFromSheets(removed);
+      }
     }
 
     function renderMetrics() {
@@ -609,6 +610,7 @@
 
       try {
         var parsedItem = await callGeminiFlash(state.capturedText, state.capturedImageBase64, state.capturedImageMime);
+        parsedItem._date = getOperationalDayKey();
         state.entries.push(parsedItem);
         persistEntries();
         renderMetrics();
@@ -677,7 +679,7 @@
       var url = (state.webhookUrl || domUrl || DEFAULT_WEBHOOK).trim();
 
       var now = new Date();
-      var operationalDateStr = getOperationalDayKey();
+      var operationalDateStr = entry._date || getOperationalDayKey();
       var localTimeStr = formatLocalHHMM(now);
 
       var payload = {
@@ -706,6 +708,30 @@
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       }).catch(function(err) { console.warn('Background sync deferred:', err); });
+    }
+
+    function deleteFromSheets(entry) {
+      var domInput = document.getElementById('cfgWebhook');
+      var domUrl = domInput ? domInput.value.trim() : '';
+      var url = (state.webhookUrl || domUrl || DEFAULT_WEBHOOK).trim();
+
+      var payload = {
+        action: "delete_food_log",
+        source: "MacroPulse",
+        entry: {
+          date: entry._date || getOperationalDayKey(),
+          item: entry.item || "",
+          calories: Number(entry.calories) || 0
+        }
+      };
+
+      fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).catch(function(err) { console.warn('Background delete sync deferred:', err); });
     }
 
     loadPersistedData();
