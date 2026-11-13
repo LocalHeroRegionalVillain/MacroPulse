@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MacroPulse v5.1</title>
+  <title>MacroPulse v5.2</title>
   <style>
     :root {
       --bg: #0c0c0c;
@@ -92,7 +92,7 @@
 <body>
 
   <header>
-    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.1</span></div>
+    <div class="brand">MacroPulse <span style="font-size:10px;color:#dc2626;">v5.2</span></div>
     <button type="button" class="btn-profile-trigger" onclick="openProfileDrawer()">PROFILE</button>
   </header>
   <div class="crimson-line"></div>
@@ -258,7 +258,6 @@
       return div.innerHTML;
     }
 
-    // Direct Inline Button Functions (Guaranteed to respond)
     function openLogDrawer() {
       resetCaptureBuffer();
       document.getElementById('logDrawer').style.display = 'flex';
@@ -370,227 +369,4 @@
       document.getElementById('valFat').textContent = Math.round(totals.fat);
 
       const pPct = Math.min(100, Math.round((totals.protein / ((state.goals && state.goals.protein) || 180)) * 100));
-      const cPct = Math.min(100, Math.round((totals.carbs / ((state.goals && state.goals.carbs) || 200)) * 100));
-      const fPct = Math.min(100, Math.round((totals.fat / ((state.goals && state.goals.fat) || 65)) * 100));
-
-      document.getElementById('barProtein').style.width = pPct + '%';
-      document.getElementById('barCarbs').style.width = cPct + '%';
-      document.getElementById('barFat').style.width = fPct + '%';
-    }
-
-    function renderFeed() {
-      const feedEl = document.getElementById('feedList');
-      feedEl.innerHTML = '';
-      if (!Array.isArray(state.entries) || state.entries.length === 0) {
-        feedEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-weight:600;">No entries recorded yet today.</div>';
-        return;
-      }
-      state.entries.slice().reverse().forEach(entry => {
-        if (!entry) return;
-        const row = document.createElement('div');
-        row.className = 'entry-row';
-        row.innerHTML = 
-          '<div class="entry-main">' +
-            '<div class="entry-name">' + escapeHtml(entry.item || 'Food Item') + '</div>' +
-            '<div class="entry-sub">' + (Number(entry.protein) || 0) + 'P · ' + (Number(entry.carbs) || 0) + 'C · ' + (Number(entry.fat) || 0) + 'F · ' + (Number(entry.sodium) || 0) + 'mg Sodium</div>' +
-          '</div>' +
-          '<div class="entry-cals">' + (Number(entry.calories) || 0) + '</div>';
-        feedEl.appendChild(row);
-      });
-    }
-
-    // Speech Recognition
-    let recognition = null;
-    try {
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechConstructor();
-        recognition.continuous = false;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        recognition.onstart = () => {
-          state.isRecording = true;
-          document.getElementById('boxAudio').classList.add('recording');
-          document.getElementById('statusLabel').textContent = 'LISTENING...';
-        };
-
-        recognition.onresult = (event) => {
-          const transcript = Array.from(event.results)
-            .map(result => result[0].transcript)
-            .join('');
-          state.capturedText = transcript;
-          document.getElementById('bufferContent').textContent = '"' + transcript + '"';
-        };
-
-        recognition.onerror = () => resetCaptureState();
-        recognition.onend = () => resetCaptureState();
-      }
-    } catch (e) {}
-
-    function handleAudioClick() {
-      if (!recognition) {
-        manualPromptFallback();
-        return;
-      }
-      if (state.isRecording) {
-        try { recognition.stop(); } catch (e) {}
-      } else {
-        try { recognition.start(); } catch (e) { manualPromptFallback(); }
-      }
-    }
-
-    function resetCaptureState() {
-      state.isRecording = false;
-      document.getElementById('boxAudio').classList.remove('recording');
-      document.getElementById('statusLabel').textContent = 'READY // GEMINI 3.5 FLASH-LITE';
-    }
-
-    function handleCameraInput(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      state.capturedImageMime = file.type || 'image/jpeg';
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Data = event.target.result.split(',')[1];
-        state.capturedImageBase64 = base64Data;
-        state.capturedText = '';
-        document.getElementById('bufferContent').textContent = '[Image Captured: ' + file.name + '] Ready for vision parsing.';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function manualPromptFallback() {
-      const input = prompt("Describe food or meal directly:", state.capturedText);
-      if (input !== null && input.trim() !== "") {
-        state.capturedText = input.trim();
-        state.capturedImageBase64 = null;
-        document.getElementById('bufferContent').textContent = '"' + input.trim() + '"';
-      }
-    }
-
-    function resetCaptureBuffer() {
-      state.capturedImageBase64 = null;
-      state.capturedImageMime = 'image/jpeg';
-      state.capturedText = '';
-      document.getElementById('bufferContent').textContent = 'Tap an icon to capture audio or scan...';
-      document.getElementById('statusLabel').textContent = 'READY // GEMINI 3.5 FLASH-LITE';
-      const btn = document.getElementById('btnEnter');
-      btn.disabled = false;
-      btn.textContent = 'ENTER';
-      document.getElementById('cameraInput').value = '';
-    }
-
-    async function submitEntry() {
-      if (!state.capturedText && !state.capturedImageBase64) {
-        alert("Please speak, take a photo, or tap KEYBOARD first.");
-        return;
-      }
-
-      const btn = document.getElementById('btnEnter');
-      btn.disabled = true;
-      btn.textContent = 'PARSING...';
-
-      try {
-        const parsedItem = await callGeminiFlash(state.capturedText, state.capturedImageBase64, state.capturedImageMime);
-        state.entries.push(parsedItem);
-        persistEntries();
-        renderMetrics();
-        renderFeed();
-        closeLogDrawer();
-        syncToSheets(parsedItem);
-      } catch (err) {
-        alert("Failed to parse: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'ENTER';
-      }
-    }
-
-    async function callGeminiFlash(textQuery, imageBase64, imageMime) {
-      const cleanKey = (state.apiKey || '').trim();
-      if (!cleanKey) throw new Error("Gemini API Key missing in Profile settings.");
-
-      const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=' + encodeURIComponent(cleanKey);
-
-      const systemPrompt = 'You are a nutrition log parser. Output ONLY a raw, valid JSON object matching this schema: {"item": "Clean short name of food", "calories": number, "protein": number, "carbs": number, "sugar": number, "fat": number, "sodium": number}. Estimate realistically if exact macros are not specified. Return NO markdown code blocks, just raw JSON.';
-
-      const parts = [];
-      if (imageBase64) {
-        parts.push({
-          inlineData: {
-            mimeType: imageMime || 'image/jpeg',
-            data: imageBase64
-          }
-        });
-      }
-      if (textQuery) {
-        parts.push({ text: textQuery });
-      } else {
-        parts.push({ text: "Parse this nutrition label or meal image." });
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: parts }],
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error('HTTP ' + response.status + ': ' + errorBody);
-      }
-
-      const data = await response.json();
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts[0]) {
-        throw new Error("Empty response from Gemini API.");
-      }
-
-      let rawText = data.candidates[0].content.parts[0].text.trim();
-      rawText = rawText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
-      return JSON.parse(rawText);
-    }
-
-    function syncToSheets(entry) {
-      const url = (state.webhookUrl || '').trim();
-      if (!url) return;
-
-      const now = new Date();
-      const operationalDateStr = getOperationalDayKey();
-      const localTimeStr = formatLocalHHMM(now);
-
-      const payload = {
-        action: "append_food_log",
-        source: "MacroPulse",
-        timestamp: now.toISOString(),
-        entry: {
-          date: operationalDateStr,
-          time: localTimeStr,
-          item: entry.item || "Unknown item",
-          portion: "1 serving",
-          calories: Number(entry.calories) || 0,
-          protein: Number(entry.protein) || 0,
-          carbs: Number(entry.carbs) || 0,
-          sugar: Number(entry.sugar) || 0,
-          fat: Number(entry.fat) || 0,
-          sodium: Number(entry.sodium) || 0,
-          logMethod: "MacroPulse"
-        }
-      };
-
-      fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      }).catch(err => console.warn('Background sync deferred:', err));
-    }
-
-    loadPersistedData();
-  </script>
-</body>
-</html>
+      const cPct = Math.min(
